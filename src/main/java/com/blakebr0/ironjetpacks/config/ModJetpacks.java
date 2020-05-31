@@ -22,6 +22,7 @@ public class ModJetpacks {
     private static final Jetpack GOLD = JetpackRegistry.createJetpack("gold", 3, 0xDEDE00, 2, 25, "minecraft:gold_ingot");
     private static final Jetpack DIAMOND = JetpackRegistry.createJetpack("diamond", 4, 0x4AEDD1, 4, 10, "minecraft:diamond");
     private static final Jetpack EMERALD = JetpackRegistry.createJetpack("emerald", 5, 0x41F384, 4, 15, "minecraft:emerald");
+    private static final Jetpack NETHERITE = JetpackRegistry.createJetpack("netherite", 6, 0x382013, 5, 15, "minecraft:netherite_ingot");
     private static final Jetpack CREATIVE = JetpackRegistry.createJetpack("creative", 0, 0xCF1AE9, 8, 0, "null").setCreative();
     
     private static final Jetpack COPPER = JetpackRegistry.createJetpack("copper", 1, 0xCE7201, 2, 12, "tag:c:copper_ingots");
@@ -39,6 +40,7 @@ public class ModJetpacks {
         GOLD.setStats(10000000, 300, 0.61D, 0.13D, 0.15D, 0.34D, 0.03D, 1.5D, 3.2D);
         DIAMOND.setStats(30000000, 650, 0.90D, 0.15D, 0.19D, 0.41D, 0.005D, 1.8D, 3.8D);
         EMERALD.setStats(48000000, 880, 1.03D, 0.17D, 0.21D, 0.45D, 0.0D, 2.0D, 4.0D);
+        NETHERITE.setStats(64000000, 1000, 1.12D, 0.23D, 0.23D, 0.45D, 0.0D, 2.2D, 4.2D);
         CREATIVE.setStats(0, 0, 1.03D, 0.17D, 0.21D, 0.45D, 0.0D, 2.0D, 0.0D);
         
         COPPER.setStats(250000, 85, 0.29D, 0.11D, 0.1D, 0.23D, 0.092D, 1.05D, 1.4D);
@@ -106,6 +108,7 @@ public class ModJetpacks {
         defaults.add(GOLD);
         defaults.add(DIAMOND);
         defaults.add(EMERALD);
+        defaults.add(NETHERITE);
         defaults.add(CREATIVE);
         
         defaults.add(COPPER);

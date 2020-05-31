@@ -69,7 +69,8 @@ public class JetpackRegistry {
                 return ModItems.ELITE_COIL.get();
             case 5:
                 return ModItems.ULTIMATE_COIL.get();
-            
+            case 6:
+                return ModItems.EXPERT_COIL.get();
         }
         return null;
     }

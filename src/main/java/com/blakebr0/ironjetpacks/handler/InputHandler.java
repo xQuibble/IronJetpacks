@@ -74,7 +74,7 @@ public class InputHandler {
         remove(playerEntity);
     }
     
-    public static void onChangeDimension(ServerPlayerEntity playerEntity, DimensionType type) {
+    public static void onChangeDimension(ServerPlayerEntity playerEntity) {
         remove(playerEntity);
     }
 }

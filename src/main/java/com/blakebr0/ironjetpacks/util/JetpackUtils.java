@@ -23,7 +23,7 @@ public class JetpackUtils {
                 JetpackItem jetpack = (JetpackItem) item;
                 if (jetpack.isEngineOn(stack) && (jetpack.getEnergyStorage(stack).getEnergy() > 0 || player.isCreative() || jetpack.getJetpack().creative)) {
                     if (jetpack.isHovering(stack)) {
-                        return !player.onGround;
+                        return !player.isOnGround();
                     } else {
                         return InputHandler.isHoldingUp(player);
                     }
@@ -69,6 +69,11 @@ public class JetpackUtils {
             
             @Override
             public float getToughness() {
+                return 0;
+            }
+    
+            @Override
+            public float getKnockbackResistance() {
                 return 0;
             }
         };

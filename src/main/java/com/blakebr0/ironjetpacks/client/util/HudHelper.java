@@ -49,7 +49,7 @@ public class HudHelper {
     }
     
     public static String getOn(boolean on) {
-        return on ? ModTooltips.ON.color(Formatting.GREEN).asFormattedString() : ModTooltips.OFF.color(Formatting.RED).asFormattedString();
+        return on ? ModTooltips.ON.color(Formatting.GREEN).getString() : ModTooltips.OFF.color(Formatting.RED).getString();
     }
     
     public static class HudPos {

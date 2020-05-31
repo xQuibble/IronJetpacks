@@ -9,6 +9,10 @@ import com.blakebr0.ironjetpacks.mixins.ServerPlayNetworkHandlerAccessor;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
+import me.shedaniel.cloth.api.armor.v1.CustomModeledArmor;
+import me.shedaniel.cloth.api.armor.v1.CustomTexturedArmor;
+import me.shedaniel.cloth.api.armor.v1.TickableArmor;
+import me.shedaniel.cloth.api.durability.bar.DurabilityBarItem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.Screen;
@@ -23,8 +27,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.DefaultedList;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +36,7 @@ import team.reborn.energy.*;
 
 import java.util.List;
 
-public class JetpackItem extends DyeableArmorItem implements Colored, DyeableItem, Enableable, EnergyHolder, ArmorTickable, CustomModeledArmor, CustomDurabilityItem {
+public class JetpackItem extends DyeableArmorItem implements Colored, DyeableItem, Enableable, EnergyHolder, TickableArmor, CustomModeledArmor, CustomTexturedArmor, DurabilityBarItem {
     private final Jetpack jetpack;
     
     public JetpackItem(Jetpack jetpack, Settings settings) {
@@ -52,19 +56,19 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
      * https://github.com/Tomson124/SimplyJetpacks-2/blob/1.12/src/main/java/tonius/simplyjetpacks/item/rewrite/ItemJetpack.java
      */
     @Override
-    public void tickArmor(ItemStack stack, World world, PlayerEntity player) {
+    public void tickArmor(ItemStack stack, PlayerEntity player) {
         ItemStack chest = player.getEquippedStack(EquipmentSlot.CHEST);
         Item item = chest.getItem();
         if (!chest.isEmpty() && item instanceof JetpackItem) {
             JetpackItem jetpack = (JetpackItem) item;
             if (jetpack.isEngineOn(chest)) {
                 boolean hover = jetpack.isHovering(chest);
-                if (InputHandler.isHoldingUp(player) || hover && !player.onGround) {
+                if (InputHandler.isHoldingUp(player) || hover && !player.isOnGround()) {
                     Jetpack info = jetpack.getJetpack();
                     
                     double hoverSpeed = InputHandler.isHoldingDown(player) ? info.speedHover : info.speedHoverSlow;
                     double currentAccel = info.accelVert * (player.getVelocity().getY() < 0.3D ? 2.5D : 1.0D);
-                    double currentSpeedVertical = info.speedVert * (player.isInWater() ? 0.4D : 1.0D);
+                    double currentSpeedVertical = info.speedVert * (player.isSubmergedInWater() ? 0.4D : 1.0D);
                     
                     double usage = player.isSprinting() ? info.usage * info.sprintFuel : info.usage;
                     
@@ -110,7 +114,7 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
                             player.updateVelocity(1, new Vec3d(-speedSideways, 0, 0));
                         }
                         
-                        if (!world.isClient()) {
+                        if (!player.world.isClient()) {
                             player.fallDistance = 0.0F;
                             
                             if (player instanceof ServerPlayerEntity) {
@@ -189,14 +193,14 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
     
     @Environment(EnvType.CLIENT)
     @Override
-    public BipedEntityModel getArmorModel(LivingEntity entity, ItemStack stack, EquipmentSlot slot, BipedEntityModel _default) {
+    public BipedEntityModel<LivingEntity> getArmorModel(LivingEntity entity, ItemStack stack, EquipmentSlot slot, BipedEntityModel<LivingEntity> _default) {
         return new JetpackModel(this);
     }
     
     @Environment(EnvType.CLIENT)
     @Override
-    public String getArmorTexture(String type) {
-        return type == null ? IronJetpacks.MOD_ID + ":textures/armor/jetpack.png" : IronJetpacks.MOD_ID + ":textures/armor/jetpack_overlay.png";
+    public String getArmorTexture(EquipmentSlot slot, ArmorItem armorItem, boolean secondLayer, String suffix) {
+        return suffix == null ? IronJetpacks.MOD_ID + ":textures/armor/jetpack.png" : IronJetpacks.MOD_ID + ":textures/armor/jetpack_overlay.png";
     }
     
     @Environment(EnvType.CLIENT)

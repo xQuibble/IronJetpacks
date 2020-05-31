@@ -6,12 +6,12 @@ import com.google.gson.JsonObject;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.ShapedRecipe;
-import net.minecraft.util.DefaultedList;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.PacketByteBuf;
+import net.minecraft.util.collection.DefaultedList;
 
 public class JetpackUpgradeRecipe extends ShapedRecipe {
     public JetpackUpgradeRecipe(Identifier id, String group, int recipeWidth, int recipeHeight, DefaultedList<Ingredient> inputs, ItemStack output) {

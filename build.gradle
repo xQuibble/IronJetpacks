@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '0.4.15'
+    id 'fabric-loom' version '0.4.18'
     id 'maven-publish'
 }
 
@@ -12,11 +12,13 @@ group = project.maven_group
 
 repositories {
     jcenter()
+    maven { url "https://dl.bintray.com/shedaniel/cloth" }
+    maven { url "https://dl.bintray.com/shedaniel/legacy-yarn-updated" }
 }
 
 dependencies {
     minecraft("com.mojang:minecraft:${project.minecraft_version}")
-    mappings("net.fabricmc:yarn:${project.yarn_mappings}:v2")
+    mappings("me.shedaniel:legacy-yarn:${project.yarn_mappings}:v2")
     modImplementation("net.fabricmc:fabric-loader:${project.loader_version}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
     modImplementation("com.lettuce.fudge:artifice:${project.artiface_version}") {
@@ -40,6 +42,9 @@ dependencies {
     modImplementation("me.shedaniel:RoughlyEnoughItems:${project.rei_version}") {
         exclude(group: "net.fabricmc.fabric-api")
         exclude(group: "io.github.prospector")
+    }
+    modImplementation("me.shedaniel.cloth.api:cloth-api:${project.cloth_api_version}"){
+        exclude(group: "net.fabricmc.fabric-api")
     }
 }
 

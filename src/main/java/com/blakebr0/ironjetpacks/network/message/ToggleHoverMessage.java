@@ -5,8 +5,8 @@ import net.fabricmc.fabric.api.network.PacketContext;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.PacketByteBuf;
 
 public class ToggleHoverMessage {
     public static ToggleHoverMessage read(PacketByteBuf buffer) {

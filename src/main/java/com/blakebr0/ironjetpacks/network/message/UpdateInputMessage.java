@@ -3,7 +3,7 @@ package com.blakebr0.ironjetpacks.network.message;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
 import net.fabricmc.fabric.api.network.PacketContext;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.PacketByteBuf;
+import net.minecraft.network.PacketByteBuf;
 
 public class UpdateInputMessage {
     private final boolean up;

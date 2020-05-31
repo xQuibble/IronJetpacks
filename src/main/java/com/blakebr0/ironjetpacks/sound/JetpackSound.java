@@ -25,12 +25,12 @@ public class JetpackSound extends MovingSoundInstance {
     }
     
     public static boolean playing(int entityId) {
-        return PLAYING_FOR.containsKey(entityId) && PLAYING_FOR.get(entityId) != null && !PLAYING_FOR.get(entityId).done;
+        return PLAYING_FOR.containsKey(entityId) && PLAYING_FOR.get(entityId) != null && !PLAYING_FOR.get(entityId).isDone();
     }
     
     @Override
     public void tick() {
-        BlockPos pos = this.player.getBlockPos();
+        BlockPos pos = this.player.getSenseCenterPos();
         this.x = (float) pos.getX();
         this.y = (float) pos.getY() - 10;
         this.z = (float) pos.getZ();
@@ -38,7 +38,7 @@ public class JetpackSound extends MovingSoundInstance {
         if (!JetpackUtils.isFlying(this.player)) {
             synchronized (PLAYING_FOR) {
                 PLAYING_FOR.remove(this.player.getEntityId());
-                this.done = true;
+                setDone();
             }
         }
     }

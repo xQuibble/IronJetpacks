@@ -68,14 +68,14 @@ public class KeyBindingsHandler {
                 NetworkHandler.sendToServer(new ToggleEngineMessage());
                 boolean on = !jetpack.isEngineOn(chest);
                 Text state = on ? ModTooltips.ON.color(Formatting.GREEN) : ModTooltips.OFF.color(Formatting.RED);
-                player.addChatMessage(ModTooltips.TOGGLE_ENGINE.args(state), true);
+                player.addMessage(ModTooltips.TOGGLE_ENGINE.args(state), true);
             }
             
             while (keyHover.wasPressed()) {
                 NetworkHandler.sendToServer(new ToggleHoverMessage());
                 boolean on = !jetpack.isHovering(chest);
                 Text state = on ? ModTooltips.ON.color(Formatting.GREEN) : ModTooltips.OFF.color(Formatting.RED);
-                player.addChatMessage(ModTooltips.TOGGLE_HOVER.args(state), true);
+                player.addMessage(ModTooltips.TOGGLE_HOVER.args(state), true);
             }
         }
     }

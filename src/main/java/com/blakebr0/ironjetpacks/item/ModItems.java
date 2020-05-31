@@ -22,6 +22,7 @@ public class ModItems {
     public static final Lazy<Item> ADVANCED_COIL = register("advanced_coil");
     public static final Lazy<Item> ELITE_COIL = register("elite_coil");
     public static final Lazy<Item> ULTIMATE_COIL = register("ultimate_coil");
+    public static final Lazy<Item> EXPERT_COIL = register("expert_coil");
     
     public static void register() {
         Registry<Item> registry = Registry.ITEM;
