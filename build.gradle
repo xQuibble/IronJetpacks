@@ -1,77 +1,97 @@
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
-    }
+plugins {
+    id 'fabric-loom' version '0.4.15'
+    id 'maven-publish'
 }
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'idea'
 
-version = '3.0.2'
-group = 'com.blakebr0.ironjetpacks'
-archivesBaseName = 'IronJetpacks-1.15.2'
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+archivesBaseName = project.archives_base_name
+version = project.mod_version
+group = project.maven_group
 
 repositories {
-    maven { url "http://dvs1.progwml6.com/files/maven/" }
-    maven { url "http://tehnut.info/maven/" }
-    mavenLocal()
     jcenter()
 }
 
-minecraft {
-    mappings channel: 'snapshot', version: '20200216-1.15.1'
-
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-
-    runs {
-        client {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'info'
-
-            ideaModule "${project.name}.main"
-            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
-        }
-
-        server {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'info'
-
-            ideaModule "${project.name}.main"
-            environment 'MOD_CLASSES', "${project.file("out/production/resources").canonicalPath};${project.file("out/production/classes").canonicalPath}"
-        }
+dependencies {
+    minecraft("com.mojang:minecraft:${project.minecraft_version}")
+    mappings("net.fabricmc:yarn:${project.yarn_mappings}:v2")
+    modImplementation("net.fabricmc:fabric-loader:${project.loader_version}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
+    modImplementation("com.lettuce.fudge:artifice:${project.artiface_version}") {
+        transitive(false)
+    }
+    include("com.lettuce.fudge:artifice:${project.artiface_version}") {
+        transitive(false)
+    }
+    modApi("me.sargunvohra.mcmods:autoconfig1u:${project.autoconfig1u_version}") {
+        transitive(false)
+    }
+    include("me.sargunvohra.mcmods:autoconfig1u:${project.autoconfig1u_version}") {
+        transitive(false)
+    }
+    modApi("teamreborn:energy:${project.tr_energy_version}") {
+        transitive(false)
+    }
+    include("teamreborn:energy:${project.tr_energy_version}") {
+        transitive(false)
+    }
+    modImplementation("me.shedaniel:RoughlyEnoughItems:${project.rei_version}") {
+        exclude(group: "net.fabricmc.fabric-api")
+        exclude(group: "io.github.prospector")
     }
 }
 
-dependencies {
-    minecraft 'net.minecraftforge:forge:1.15.2-31.1.18'
+processResources {
+    inputs.property "version", project.version
 
-    compile files('../Cucumber/build/libs/Cucumber-1.15.2-3.0.2-deobf.jar')
-    compile fg.deobf('mcp.mobius.waila:Hwyla:1.10.7-B71_1.15.1')
-    compileOnly fg.deobf("mezz.jei:jei-1.15.2:6.0.0.2:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-1.15.2:6.0.0.2")
+    from(sourceSets.main.resources.srcDirs) {
+        include "fabric.mod.json"
+        expand "version": project.version
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude "fabric.mod.json"
+    }
+}
+
+// ensure that the encoding is set to UTF-8, no matter what the system default is
+// this fixes some edge cases with special characters not displaying correctly
+// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+// if it is present.
+// If you remove this task, sources will not be generated.
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = "sources"
+    from sourceSets.main.allSource
 }
 
 jar {
-    from sourceSets.main.output
-    manifest {
-        attributes([
-            "Specification-Title": "Iron Jetpacks",
-            "Specification-Vendor": "BlakeBr0",
-            "Specification-Version": "1",
-            "Implementation-Title": project.name,
-            "Implementation-Version": "${version}",
-            "Implementation-Vendor" : "BlakeBr0",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
+    from "LICENSE"
+}
+
+// configure the maven publication
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            // add all the jars that should be included when publishing to maven
+            artifact(remapJar) {
+                builtBy remapJar
+            }
+            artifact(sourcesJar) {
+                builtBy remapSourcesJar
+            }
+        }
+    }
+
+    // select the repositories you want to publish to
+    repositories {
+        // uncomment to publish to the local maven
+        // mavenLocal()
     }
 }

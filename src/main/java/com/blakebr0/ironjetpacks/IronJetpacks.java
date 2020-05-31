@@ -1,91 +1,58 @@
 package com.blakebr0.ironjetpacks;
 
-import com.blakebr0.ironjetpacks.client.ModelHandler;
 import com.blakebr0.ironjetpacks.config.ModConfigs;
-import com.blakebr0.ironjetpacks.crafting.JetpackDynamicRecipeManager;
 import com.blakebr0.ironjetpacks.crafting.ModRecipeSerializers;
-import com.blakebr0.ironjetpacks.handler.ColorHandler;
-import com.blakebr0.ironjetpacks.handler.HudHandler;
-import com.blakebr0.ironjetpacks.handler.InputHandler;
-import com.blakebr0.ironjetpacks.handler.JetpackClientHandler;
-import com.blakebr0.ironjetpacks.handler.KeybindHandler;
 import com.blakebr0.ironjetpacks.item.ModItems;
 import com.blakebr0.ironjetpacks.network.NetworkHandler;
 import com.blakebr0.ironjetpacks.sound.ModSounds;
+import me.sargunvohra.mcmods.autoconfig1u.AutoConfig;
+import me.sargunvohra.mcmods.autoconfig1u.serializer.JanksonConfigSerializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.ItemGroup;
-import net.minecraft.resources.IReloadableResourceManager;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.DeferredWorkQueue;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
-import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.dedicated.MinecraftDedicatedServer;
+import net.minecraft.util.Identifier;
 
-@Mod(IronJetpacks.MOD_ID)
-public class IronJetpacks {
-	public static final String MOD_ID = "ironjetpacks";
-	public static final String NAME = "Iron Jetpacks";
+import java.util.function.Supplier;
 
-	public static final ItemGroup ITEM_GROUP = new IJItemGroup();
-
-	public IronJetpacks() {
-		IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
-
-		bus.register(this);
-		bus.register(new ModItems());
-		bus.register(new ModSounds());
-		bus.register(new ModRecipeSerializers());
-		bus.register(new ModConfigs());
-
-		DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
-			bus.register(new ColorHandler());
-			bus.register(new ModelHandler());
-		});
-
-		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ModConfigs.CLIENT);
-		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ModConfigs.COMMON);
-		ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ModConfigs.SERVER);
-	}
-
-	@SubscribeEvent
-	public void onCommonSetup(FMLCommonSetupEvent event) {
-		MinecraftForge.EVENT_BUS.register(this);
-		MinecraftForge.EVENT_BUS.register(new InputHandler());
-
-		ModRecipeSerializers.onCommonSetup();
-
-		DeferredWorkQueue.runLater(() -> {
-			NetworkHandler.onCommonSetup();
-		});
-	}
-
-	@SubscribeEvent
-	public void onClientSetup(FMLClientSetupEvent event) {
-		MinecraftForge.EVENT_BUS.register(new KeybindHandler());
-		MinecraftForge.EVENT_BUS.register(new HudHandler());
-		MinecraftForge.EVENT_BUS.register(new JetpackClientHandler());
-
-		KeybindHandler.onClientSetup();
-	}
-
-	@SubscribeEvent(priority = EventPriority.HIGH)
-	public void onServerSetup(FMLServerAboutToStartEvent event) {
-		IReloadableResourceManager manager = event.getServer().getResourceManager();
-
-		manager.addReloadListener(new JetpackDynamicRecipeManager());
-	}
-
-	@SubscribeEvent
-	public void onServerStopping(FMLServerStoppingEvent event) {
-		InputHandler.clear();
-	}
+public class IronJetpacks implements ModInitializer {
+    public static final String MOD_ID = "iron-jetpacks";
+    public static final String NAME = "Iron Jetpacks";
+    
+    public static Supplier<MinecraftServer> serverSupplier = () -> {
+        Object instance = FabricLoader.getInstance().getGameInstance();
+        if (instance instanceof MinecraftDedicatedServer)
+            return (MinecraftServer) instance;
+        return null;
+    };
+    
+    public static final ItemGroup ITEM_GROUP = FabricItemGroupBuilder.create(new Identifier(MOD_ID, MOD_ID))
+            .icon(() -> {
+                return new ItemStack(ModItems.STRAP.get());
+            })
+            .build();
+    
+    @Override
+    public void onInitialize() {
+        ModItems.register();
+        ModSounds.register();
+        ModRecipeSerializers.register();
+        ModRecipeSerializers.onCommonSetup();
+        
+        NetworkHandler.onCommonSetup();
+        
+        AutoConfig.register(ModConfigs.Common.class, JanksonConfigSerializer::new);
+        
+        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+            try {
+                Class.forName("com.blakebr0.ironjetpacks.client.IronJetpacksClient").getDeclaredMethod("onInitializeClient").invoke(null);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }

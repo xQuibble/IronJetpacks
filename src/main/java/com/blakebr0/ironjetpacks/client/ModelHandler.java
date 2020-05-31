@@ -2,67 +2,88 @@ package com.blakebr0.ironjetpacks.client;
 
 import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.registry.JetpackRegistry;
-import com.google.common.base.Stopwatch;
-import net.minecraft.client.renderer.model.IBakedModel;
-import net.minecraft.client.renderer.model.ModelResourceLocation;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.event.ModelBakeEvent;
-import net.minecraftforge.client.event.ModelRegistryEvent;
-import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import com.google.common.collect.Maps;
+import com.mojang.datafixers.util.Pair;
+import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
+import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.render.model.ModelBakeSettings;
+import net.minecraft.client.render.model.ModelLoader;
+import net.minecraft.client.render.model.UnbakedModel;
+import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.util.ModelIdentifier;
+import net.minecraft.client.util.SpriteIdentifier;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.Set;
+import java.util.function.Function;
 
 public class ModelHandler {
     private static final Logger LOGGER = LogManager.getLogger(IronJetpacks.NAME);
-
-    @SubscribeEvent
-    public void onRegisterModels(ModelRegistryEvent event) {
-        ModelLoader.addSpecialModel(new ResourceLocation(IronJetpacks.MOD_ID, "item/cell"));
-        ModelLoader.addSpecialModel(new ResourceLocation(IronJetpacks.MOD_ID, "item/capacitor"));
-        ModelLoader.addSpecialModel(new ResourceLocation(IronJetpacks.MOD_ID, "item/thruster"));
-        ModelLoader.addSpecialModel(new ResourceLocation(IronJetpacks.MOD_ID, "item/jetpack"));
-    }
-
-    @SubscribeEvent
-    public void onModelBake(ModelBakeEvent event) {
-        Stopwatch stopwatch = Stopwatch.createStarted();
-        Map<ResourceLocation, IBakedModel> registry = event.getModelRegistry();
-
-        IBakedModel cell = registry.get(new ResourceLocation(IronJetpacks.MOD_ID, "item/cell"));
-        IBakedModel capacitor = registry.get(new ResourceLocation(IronJetpacks.MOD_ID, "item/capacitor"));
-        IBakedModel thruster = registry.get(new ResourceLocation(IronJetpacks.MOD_ID, "item/thruster"));
-        IBakedModel jetpack = registry.get(new ResourceLocation(IronJetpacks.MOD_ID, "item/jetpack"));
-
+    
+    public static void onClientSetup() {
+        ModelLoadingRegistry.INSTANCE.registerAppender((resourceManager, consumer) -> {
+            consumer.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "cell"), "inventory"));
+            consumer.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "capacitor"), "inventory"));
+            consumer.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "thruster"), "inventory"));
+            consumer.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "jetpack"), "inventory"));
+        });
+        Identifier cell = new Identifier(IronJetpacks.MOD_ID, "item/cell");
+        Identifier capacitor = new Identifier(IronJetpacks.MOD_ID, "item/capacitor");
+        Identifier thruster = new Identifier(IronJetpacks.MOD_ID, "item/thruster");
+        Identifier jetpack = new Identifier(IronJetpacks.MOD_ID, "item/jetpack");
+        Map<ModelIdentifier, UnbakedModel> modelMap = Maps.newHashMap();
         JetpackRegistry.getInstance().getAllJetpacks().forEach(pack -> {
-            ResourceLocation cellLocation = pack.cell.getRegistryName();
+            Identifier cellLocation = Registry.ITEM.getId(pack.cell);
             if (cellLocation != null) {
-                ModelResourceLocation location = new ModelResourceLocation(cellLocation, "inventory");
-                registry.replace(location, cell);
+                ModelIdentifier location = new ModelIdentifier(cellLocation, "inventory");
+                provideModel(modelMap, location, cell);
             }
-
-            ResourceLocation capacitorLocation = pack.capacitor.getRegistryName();
+            
+            Identifier capacitorLocation = Registry.ITEM.getId(pack.capacitor);
             if (capacitorLocation != null) {
-                ModelResourceLocation location = new ModelResourceLocation(capacitorLocation, "inventory");
-                registry.replace(location, capacitor);
+                ModelIdentifier location = new ModelIdentifier(capacitorLocation, "inventory");
+                provideModel(modelMap, location, capacitor);
             }
-
-            ResourceLocation thrusterLocation = pack.thruster.getRegistryName();
+            
+            Identifier thrusterLocation = Registry.ITEM.getId(pack.thruster);
             if (thrusterLocation != null) {
-                ModelResourceLocation location = new ModelResourceLocation(thrusterLocation, "inventory");
-                registry.replace(location, thruster);
+                ModelIdentifier location = new ModelIdentifier(thrusterLocation, "inventory");
+                provideModel(modelMap, location, thruster);
             }
-
-            ResourceLocation jetpackLocation = pack.item.getRegistryName();
+            
+            Identifier jetpackLocation = Registry.ITEM.getId(pack.item);
             if (jetpackLocation != null) {
-                ModelResourceLocation location = new ModelResourceLocation(jetpackLocation, "inventory");
-                registry.replace(location, jetpack);
+                ModelIdentifier location = new ModelIdentifier(jetpackLocation, "inventory");
+                provideModel(modelMap, location, jetpack);
             }
         });
-
-        LOGGER.info("Model replacement took {} ms", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+        ModelLoadingRegistry.INSTANCE.registerVariantProvider(resourceManager -> (modelIdentifier, modelProviderContext) -> {
+            return modelMap.get(modelIdentifier);
+        });
+    }
+    
+    private static void provideModel(Map<ModelIdentifier, UnbakedModel> modelMap, ModelIdentifier modelIdentifier, Identifier redirectedId) {
+        modelMap.put(modelIdentifier, new UnbakedModel() {
+            @Override
+            public Collection<Identifier> getModelDependencies() {
+                return Collections.emptyList();
+            }
+            
+            @Override
+            public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
+                return Collections.emptyList();
+            }
+            
+            @Override
+            public BakedModel bake(ModelLoader loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer, Identifier modelId) {
+                return loader.bake(redirectedId, rotationContainer);
+            }
+        });
     }
 }

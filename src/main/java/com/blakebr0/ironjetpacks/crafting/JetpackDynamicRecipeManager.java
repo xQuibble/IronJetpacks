@@ -2,182 +2,172 @@ package com.blakebr0.ironjetpacks.crafting;
 
 import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.config.ModConfigs;
-import com.blakebr0.ironjetpacks.crafting.ingredient.JetpackIngredient;
 import com.blakebr0.ironjetpacks.crafting.recipe.JetpackUpgradeRecipe;
 import com.blakebr0.ironjetpacks.item.ModItems;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.registry.JetpackRegistry;
+import com.google.common.collect.ImmutableMap;
 import net.minecraft.block.Blocks;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.IRecipeType;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.item.crafting.ShapedRecipe;
-import net.minecraft.resources.IResourceManager;
-import net.minecraft.resources.IResourceManagerReloadListener;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraft.item.Items;
+import net.minecraft.recipe.Ingredient;
+import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeType;
+import net.minecraft.recipe.ShapedRecipe;
+import net.minecraft.util.DefaultedList;
+import net.minecraft.util.Identifier;
 
-import java.util.HashMap;
 import java.util.Map;
 
-public class JetpackDynamicRecipeManager implements IResourceManagerReloadListener {
-    @Override
-    public void onResourceManagerReload(IResourceManager resourceManager) {
-        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-
-        RecipeManager recipeManager = server.getRecipeManager();
-        recipeManager.recipes = new HashMap<>(recipeManager.recipes);
-        recipeManager.recipes.replaceAll((t, v) -> new HashMap<>(recipeManager.recipes.get(t)));
-
-        Map<ResourceLocation, IRecipe<?>> recipes = recipeManager.recipes.get(IRecipeType.CRAFTING);
-        JetpackRegistry jetpacks = JetpackRegistry.getInstance();
-
-        jetpacks.getAllJetpacks().forEach(jetpack -> {
-            ShapedRecipe cell = this.makeCellRecipe(jetpack);
-            ShapedRecipe thruster = this.makeThrusterRecipe(jetpack);
-            ShapedRecipe capacitor = this.makeCapacitorRecipe(jetpack);
-            ShapedRecipe jetpackSelf = this.makeJetpackRecipe(jetpack);
-            JetpackUpgradeRecipe jetpackUpgrade = this.makeJetpackUpgradeRecipe(jetpack);
-
+public class JetpackDynamicRecipeManager {
+    public static void appendRecipes(Map<RecipeType<?>, ImmutableMap.Builder<Identifier, Recipe<?>>> recipes) {
+        ImmutableMap.Builder<Identifier, Recipe<?>> builder = recipes.computeIfAbsent(RecipeType.CRAFTING, recipeType -> ImmutableMap.builder());
+        JetpackRegistry.getInstance().getAllJetpacks().forEach(jetpack -> {
+            ShapedRecipe cell = makeCellRecipe(jetpack);
+            ShapedRecipe thruster = makeThrusterRecipe(jetpack);
+            ShapedRecipe capacitor = makeCapacitorRecipe(jetpack);
+            ShapedRecipe jetpackSelf = makeJetpackRecipe(jetpack);
+            JetpackUpgradeRecipe jetpackUpgrade = makeJetpackUpgradeRecipe(jetpack);
             if (cell != null)
-                recipes.put(cell.getId(), cell);
+                builder.put(cell.getId(), cell);
             if (thruster != null)
-                recipes.put(thruster.getId(), thruster);
+                builder.put(thruster.getId(), thruster);
             if (capacitor != null)
-                recipes.put(capacitor.getId(), capacitor);
+                builder.put(capacitor.getId(), capacitor);
             if (jetpackSelf != null)
-                recipes.put(jetpackSelf.getId(), jetpackSelf);
+                builder.put(jetpackSelf.getId(), jetpackSelf);
             if (jetpackUpgrade != null)
-                recipes.put(jetpackUpgrade.getId(), jetpackUpgrade);
+                builder.put(jetpackUpgrade.getId(), jetpackUpgrade);
         });
     }
-
-    private ShapedRecipe makeCellRecipe(Jetpack jetpack) {
-        if (!ModConfigs.ENABLE_CELL_RECIPES.get())
+    
+    private static ShapedRecipe makeCellRecipe(Jetpack jetpack) {
+        if (!ModConfigs.get().recipe.enableCellRecipes)
             return null;
-
+        
         JetpackRegistry jetpacks = JetpackRegistry.getInstance();
-
+        
         Ingredient material = jetpack.getCraftingMaterial();
-        if (material == Ingredient.EMPTY)
+        Item coilItem = jetpacks.getCoilForTier(jetpack.tier);
+        if (material == Ingredient.EMPTY || coilItem == null)
             return null;
-
-        Ingredient coil = Ingredient.fromItems(jetpacks.getCoilForTier(jetpack.tier));
-        Ingredient redstone = Ingredient.fromTag(Tags.Items.DUSTS_REDSTONE);
-        NonNullList<Ingredient> inputs = NonNullList.from(Ingredient.EMPTY,
+        
+        Ingredient coil = Ingredient.ofItems(coilItem);
+        Ingredient redstone = Ingredient.ofItems(Items.REDSTONE);
+        DefaultedList<Ingredient> inputs = DefaultedList.copyOf(Ingredient.EMPTY,
                 Ingredient.EMPTY, redstone, Ingredient.EMPTY,
                 material, coil, material,
                 Ingredient.EMPTY, redstone, Ingredient.EMPTY
         );
-
-        ResourceLocation name = new ResourceLocation(IronJetpacks.MOD_ID, jetpack.name + "_cell");
+        
+        Identifier name = new Identifier(IronJetpacks.MOD_ID, jetpack.name + "_cell");
         ItemStack output = new ItemStack(jetpack.cell);
-
-        return new ShapedRecipe(name, "ironjetpacks:cells", 3, 3, inputs, output);
+        
+        return new ShapedRecipe(name, "iron-jetpacks:cells", 3, 3, inputs, output);
     }
-
-    private ShapedRecipe makeThrusterRecipe(Jetpack jetpack) {
-        if (!ModConfigs.ENABLE_THRUSTER_RECIPES.get())
+    
+    private static ShapedRecipe makeThrusterRecipe(Jetpack jetpack) {
+        if (!ModConfigs.get().recipe.enableThrusterRecipes)
             return null;
-
+        
         JetpackRegistry jetpacks = JetpackRegistry.getInstance();
-
+        
         Ingredient material = jetpack.getCraftingMaterial();
-        if (material == Ingredient.EMPTY)
+        Item coilItem = jetpacks.getCoilForTier(jetpack.tier);
+        if (material == Ingredient.EMPTY || coilItem == null)
             return null;
-
-        Ingredient coil = Ingredient.fromItems(jetpacks.getCoilForTier(jetpack.tier));
-        Ingredient cell = Ingredient.fromItems(jetpack.cell);
-        Ingredient furnace = Ingredient.fromItems(Blocks.FURNACE);
-        NonNullList<Ingredient> inputs = NonNullList.from(Ingredient.EMPTY,
+        
+        Ingredient coil = Ingredient.ofItems(coilItem);
+        Ingredient cell = Ingredient.ofItems(jetpack.cell);
+        Ingredient furnace = Ingredient.ofItems(Blocks.FURNACE);
+        DefaultedList<Ingredient> inputs = DefaultedList.copyOf(Ingredient.EMPTY,
                 material, coil, material,
                 coil, cell, coil,
                 material, furnace, material
         );
-
-        ResourceLocation name = new ResourceLocation(IronJetpacks.MOD_ID, jetpack.name + "_thruster");
+        
+        Identifier name = new Identifier(IronJetpacks.MOD_ID, jetpack.name + "_thruster");
         ItemStack output = new ItemStack(jetpack.thruster);
-
-        return new ShapedRecipe(name, "ironjetpacks:thrusters", 3, 3, inputs, output);
+        
+        return new ShapedRecipe(name, "iron-jetpacks:thrusters", 3, 3, inputs, output);
     }
-
-    private ShapedRecipe makeCapacitorRecipe(Jetpack jetpack) {
-        if (!ModConfigs.ENABLE_CAPACITOR_RECIPES.get())
+    
+    private static ShapedRecipe makeCapacitorRecipe(Jetpack jetpack) {
+        if (!ModConfigs.get().recipe.enableCapacitorRecipes)
             return null;
-
+        
         Ingredient material = jetpack.getCraftingMaterial();
         if (material == Ingredient.EMPTY)
             return null;
-
-        Ingredient cell = Ingredient.fromItems(jetpack.cell);
-        NonNullList<Ingredient> inputs = NonNullList.from(Ingredient.EMPTY,
+        
+        Ingredient cell = Ingredient.ofItems(jetpack.cell);
+        DefaultedList<Ingredient> inputs = DefaultedList.copyOf(Ingredient.EMPTY,
                 material, cell, material,
                 material, cell, material,
                 material, cell, material
         );
-
-        ResourceLocation name = new ResourceLocation(IronJetpacks.MOD_ID, jetpack.name + "_capacitor");
+        
+        Identifier name = new Identifier(IronJetpacks.MOD_ID, jetpack.name + "_capacitor");
         ItemStack output = new ItemStack(jetpack.capacitor);
-
-        return new ShapedRecipe(name, "ironjetpacks:capacitors", 3, 3, inputs, output);
+        
+        return new ShapedRecipe(name, "iron-jetpacks:capacitors", 3, 3, inputs, output);
     }
-
-    private ShapedRecipe makeJetpackRecipe(Jetpack jetpack) {
-        if (!ModConfigs.ENABLE_JETPACK_RECIPES.get())
+    
+    private static ShapedRecipe makeJetpackRecipe(Jetpack jetpack) {
+        if (!ModConfigs.get().recipe.enableJetpackRecipes)
             return null;
-
+        
         JetpackRegistry jetpacks = JetpackRegistry.getInstance();
         if (jetpack.tier != jetpacks.getLowestTier())
             return null;
-
+        
         Ingredient material = jetpack.getCraftingMaterial();
         if (material == Ingredient.EMPTY)
             return null;
-
-        Ingredient capacitor = Ingredient.fromItems(jetpack.capacitor);
-        Ingredient thruster = Ingredient.fromItems(jetpack.thruster);
-        Ingredient strap = Ingredient.fromItems(ModItems.STRAP.get());
-        NonNullList<Ingredient> inputs = NonNullList.from(Ingredient.EMPTY,
+        
+        Ingredient capacitor = Ingredient.ofItems(jetpack.capacitor);
+        Ingredient thruster = Ingredient.ofItems(jetpack.thruster);
+        Ingredient strap = Ingredient.ofItems(ModItems.STRAP.get());
+        DefaultedList<Ingredient> inputs = DefaultedList.copyOf(Ingredient.EMPTY,
                 material, capacitor, material,
                 material, strap, material,
                 thruster, Ingredient.EMPTY, thruster
         );
-
-        ResourceLocation name = new ResourceLocation(IronJetpacks.MOD_ID, jetpack.name + "_jetpack");
+        
+        Identifier name = new Identifier(IronJetpacks.MOD_ID, jetpack.name + "_jetpack");
         ItemStack output = new ItemStack(jetpack.item);
-
-        return new ShapedRecipe(name, "ironjetpacks:jetpacks", 3, 3, inputs, output);
+        
+        return new ShapedRecipe(name, "iron-jetpacks:jetpacks", 3, 3, inputs, output);
     }
-
-    private JetpackUpgradeRecipe makeJetpackUpgradeRecipe(Jetpack jetpack) {
-        if (!ModConfigs.ENABLE_JETPACK_RECIPES.get())
+    
+    private static JetpackUpgradeRecipe makeJetpackUpgradeRecipe(Jetpack jetpack) {
+        if (!ModConfigs.get().recipe.enableJetpackRecipes)
             return null;
-
+        
         JetpackRegistry jetpacks = JetpackRegistry.getInstance();
         if (jetpack.tier == jetpacks.getLowestTier())
             return null;
-
+        
         Ingredient material = jetpack.getCraftingMaterial();
         if (material == Ingredient.EMPTY)
             return null;
-
-        Ingredient capacitor = Ingredient.fromItems(jetpack.capacitor);
-        Ingredient thruster = Ingredient.fromItems(jetpack.thruster);
-        Ingredient jetpackTier = new JetpackIngredient(jetpack.tier - 1);
-        NonNullList<Ingredient> inputs = NonNullList.from(Ingredient.EMPTY,
+        
+        Ingredient capacitor = Ingredient.ofItems(jetpack.capacitor);
+        Ingredient thruster = Ingredient.ofItems(jetpack.thruster);
+        Ingredient jetpackTier = Ingredient.ofItems(ModRecipeSerializers.ALL_JETPACKS.stream()
+                .filter(item -> item.getJetpack().tier == jetpack.tier - 1)
+                .toArray(ItemConvertible[]::new));
+        DefaultedList<Ingredient> inputs = DefaultedList.copyOf(Ingredient.EMPTY,
                 material, capacitor, material,
                 material, jetpackTier, material,
                 thruster, Ingredient.EMPTY, thruster
         );
-
-        ResourceLocation name = new ResourceLocation(IronJetpacks.MOD_ID, jetpack.name + "_jetpack");
+        
+        Identifier name = new Identifier(IronJetpacks.MOD_ID, jetpack.name + "_jetpack");
         ItemStack output = new ItemStack(jetpack.item);
-
-        return new JetpackUpgradeRecipe(name, "ironjetpacks:jetpacks", 3, 3, inputs, output);
+        
+        return new JetpackUpgradeRecipe(name, "iron-jetpacks:jetpacks", 3, 3, inputs, output);
     }
 }
