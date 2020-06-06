@@ -7,9 +7,10 @@ import net.minecraft.util.Lazy;
 import net.minecraft.util.registry.Registry;
 
 public class ModSounds {
-    public static final Lazy<SoundEvent> JETPACK = new Lazy<>(() -> new SoundEvent(new Identifier(IronJetpacks.MOD_ID, "jetpack")));
+    public static final Identifier JETPACK_ID = new Identifier(IronJetpacks.MOD_ID, "jetpack");
+    public static final Lazy<SoundEvent> JETPACK = new Lazy<>(() -> new SoundEvent(JETPACK_ID));
     
     public static void register() {
-        Registry.register(Registry.SOUND_EVENT, JETPACK.get().getId(), JETPACK.get());
+        Registry.register(Registry.SOUND_EVENT, JETPACK_ID, JETPACK.get());
     }
 }
