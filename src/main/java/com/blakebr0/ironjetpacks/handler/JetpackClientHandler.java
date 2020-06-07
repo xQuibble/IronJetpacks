@@ -5,6 +5,8 @@ import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.sound.JetpackSound;
 import com.blakebr0.ironjetpacks.util.JetpackUtils;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.options.ParticlesOption;
 import net.minecraft.entity.EquipmentSlot;
@@ -15,6 +17,7 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.Random;
 
+@Environment(EnvType.CLIENT)
 public class JetpackClientHandler {
     private static final Random RANDOM = new Random();
     

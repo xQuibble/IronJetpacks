@@ -1,6 +1,8 @@
 package com.blakebr0.ironjetpacks.mixins;
 
 import com.blakebr0.ironjetpacks.item.CustomModeledArmor;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.feature.ArmorFeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRenderer;
@@ -23,6 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Map;
 
+@Environment(EnvType.CLIENT)
 @Mixin(ArmorFeatureRenderer.class)
 public abstract class MixinArmorFeatureRenderer extends FeatureRenderer {
     @Shadow @Final private static Map<String, Identifier> ARMOR_TEXTURE_CACHE;

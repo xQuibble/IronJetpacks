@@ -6,6 +6,8 @@ import com.blakebr0.ironjetpacks.client.util.HudHelper.HudPos;
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.ChatScreen;
@@ -15,6 +17,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
+@Environment(EnvType.CLIENT)
 public class HudHandler {
     private static final Identifier HUD_TEXTURE = new Identifier(IronJetpacks.MOD_ID, "textures/gui/hud.png");
     

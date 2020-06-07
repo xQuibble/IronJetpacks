@@ -8,6 +8,8 @@ import com.blakebr0.ironjetpacks.handler.JetpackClientHandler;
 import com.blakebr0.ironjetpacks.handler.KeyBindingsHandler;
 import me.sargunvohra.mcmods.autoconfig1u.AutoConfig;
 import me.sargunvohra.mcmods.autoconfig1u.serializer.JanksonConfigSerializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.event.client.ClientTickCallback;
 import net.minecraft.client.MinecraftClient;
@@ -16,6 +18,7 @@ import net.minecraft.server.integrated.IntegratedServer;
 
 import java.util.function.Supplier;
 
+@Environment(EnvType.CLIENT)
 public class IronJetpacksClient {
     public static void onInitializeClient() {
         ClientTickCallback.EVENT.register(KeyBindingsHandler::onClientTick);
