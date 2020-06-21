@@ -2,6 +2,7 @@ package com.blakebr0.ironjetpacks.crafting.recipe;
 
 import com.blakebr0.ironjetpacks.crafting.ModRecipeSerializers;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
+import com.blakebr0.ironjetpacks.mixins.ShapedRecipeAccessor;
 import com.google.gson.JsonObject;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
@@ -43,7 +44,7 @@ public class JetpackUpgradeRecipe extends ShapedRecipe {
         @Override
         public JetpackUpgradeRecipe read(Identifier recipeId, JsonObject json) {
             ShapedRecipe recipe = RecipeSerializer.SHAPED.read(recipeId, json);
-            return new JetpackUpgradeRecipe(recipeId, recipe.getGroup(), recipe.getWidth(), recipe.getHeight(), recipe.getPreviewInputs(), recipe.getOutput());
+            return new JetpackUpgradeRecipe(recipeId, ((ShapedRecipeAccessor) recipe).getGroup(), recipe.getWidth(), recipe.getHeight(), recipe.getPreviewInputs(), recipe.getOutput());
         }
         
         @Override
@@ -65,7 +66,7 @@ public class JetpackUpgradeRecipe extends ShapedRecipe {
         public void write(PacketByteBuf buffer, JetpackUpgradeRecipe recipe) {
             buffer.writeVarInt(recipe.getWidth());
             buffer.writeVarInt(recipe.getHeight());
-            buffer.writeString(recipe.getGroup());
+            buffer.writeString(((ShapedRecipeAccessor) recipe).getGroup());
             
             for (Ingredient ingredient : recipe.getPreviewInputs()) {
                 ingredient.write(buffer);
