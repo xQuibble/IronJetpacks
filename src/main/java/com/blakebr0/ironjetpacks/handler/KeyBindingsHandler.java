@@ -7,10 +7,12 @@ import com.blakebr0.ironjetpacks.network.NetworkHandler;
 import com.blakebr0.ironjetpacks.network.message.ToggleEngineMessage;
 import com.blakebr0.ironjetpacks.network.message.ToggleHoverMessage;
 import com.blakebr0.ironjetpacks.network.message.UpdateInputMessage;
-import net.fabricmc.fabric.api.client.keybinding.FabricKeyBinding;
-import net.fabricmc.fabric.api.client.keybinding.KeyBindingRegistry;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.options.GameOptions;
+import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
@@ -18,13 +20,13 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
+@Environment(EnvType.CLIENT)
 public class KeyBindingsHandler {
-    private static FabricKeyBinding keyEngine;
-    private static FabricKeyBinding keyHover;
-    private static FabricKeyBinding keyDescend;
+    private static KeyBinding keyEngine;
+    private static KeyBinding keyHover;
+    private static KeyBinding keyDescend;
     
     private static boolean up = false;
     private static boolean down = false;
@@ -37,15 +39,10 @@ public class KeyBindingsHandler {
         keyEngine = create("engine", GLFW.GLFW_KEY_V, IronJetpacks.NAME);
         keyHover = create("hover", GLFW.GLFW_KEY_G, IronJetpacks.NAME);
         keyDescend = create("descend", InputUtil.UNKNOWN_KEYCODE.getKeyCode(), IronJetpacks.NAME);
-        
-        KeyBindingRegistry.INSTANCE.addCategory(IronJetpacks.NAME);
-        KeyBindingRegistry.INSTANCE.register(keyEngine);
-        KeyBindingRegistry.INSTANCE.register(keyHover);
-        KeyBindingRegistry.INSTANCE.register(keyDescend);
     }
     
-    private static FabricKeyBinding create(String id, int key, String category) {
-        return FabricKeyBinding.Builder.create(new Identifier(IronJetpacks.MOD_ID, id), InputUtil.Type.KEYSYM, key, category).build();
+    private static KeyBinding create(String id, int key, String category) {
+        return KeyBindingHelper.registerKeyBinding(new KeyBinding("key." + IronJetpacks.MOD_ID + "." + id, InputUtil.Type.KEYSYM, key, category));
     }
     
     public static void onClientTick(MinecraftClient client) {

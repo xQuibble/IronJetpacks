@@ -1,6 +1,8 @@
 package com.blakebr0.ironjetpacks.client.model;
 
 import com.blakebr0.ironjetpacks.item.JetpackItem;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.entity.EquipmentSlot;
@@ -12,6 +14,7 @@ import team.reborn.energy.EnergyHandler;
  * This is a slightly modified version of the model from Simply Jetpacks
  * https://github.com/Tomson124/SimplyJetpacks-2/blob/1.12/src/main/java/tonius/simplyjetpacks/client/model/ModelJetpack.java
  */
+@Environment(EnvType.CLIENT)
 public class JetpackModel extends BipedEntityModel<LivingEntity> {
     private final JetpackItem jetpack;
     private final ModelPart[] energyBarLeft = new ModelPart[6];

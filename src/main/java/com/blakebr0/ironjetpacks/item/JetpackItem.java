@@ -146,6 +146,7 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
         return !this.jetpack.creative;
     }
     
+    @Environment(EnvType.CLIENT)
     @Override
     public void appendTooltip(ItemStack stack, World world, List<Text> tooltip, TooltipContext advanced) {
         if (!this.jetpack.creative) {

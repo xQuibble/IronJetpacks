@@ -4,12 +4,15 @@ import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.blakebr0.ironjetpacks.lib.ModTooltips;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.Window;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Formatting;
 import team.reborn.energy.EnergyHandler;
 
+@Environment(EnvType.CLIENT)
 public class HudHelper {
     public static HudPos getHudPos() {
         Window window = MinecraftClient.getInstance().getWindow();

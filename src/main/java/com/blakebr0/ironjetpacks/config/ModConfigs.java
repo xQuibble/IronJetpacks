@@ -10,6 +10,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 public class ModConfigs {
+    @Environment(EnvType.CLIENT)
     @Config(name = IronJetpacks.MOD_ID + "/client")
     public static class Client implements ConfigData {
         @ConfigEntry.Category("general")
