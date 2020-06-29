@@ -3,9 +3,9 @@ package com.blakebr0.ironjetpacks.registry;
 import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.item.ComponentItem;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
+import net.fabricmc.fabric.api.tag.TagRegistry;
 import net.minecraft.item.Item;
 import net.minecraft.recipe.Ingredient;
-import net.minecraft.tag.ItemTags;
 import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
@@ -108,19 +108,23 @@ public class Jetpack {
     }
     
     public Ingredient getCraftingMaterial() {
-        if (this.craftingMaterial == null) {
+        if (this.craftingMaterial == null || this.craftingMaterial.isEmpty()) {
             this.craftingMaterial = Ingredient.EMPTY;
-            if (!this.craftingMaterialString.equalsIgnoreCase("null")) {
-                String[] parts = craftingMaterialString.split(":");
-                if (parts.length >= 3 && this.craftingMaterialString.startsWith("tag:")) {
-                    Tag<Item> tag = ItemTags.getContainer().get(new Identifier(parts[1], parts[2]));
-                    if (tag != null && !tag.values().isEmpty())
-                        this.craftingMaterial = Ingredient.fromTag(tag);
-                } else if (parts.length >= 2) {
-                    Item item = Registry.ITEM.get(new Identifier(parts[0], parts[1]));
-                    if (item != null)
-                        this.craftingMaterial = Ingredient.ofItems(item);
+            try {
+                if (!this.craftingMaterialString.equalsIgnoreCase("null")) {
+                    String[] parts = craftingMaterialString.split(":");
+                    if (parts.length >= 3 && this.craftingMaterialString.startsWith("tag:")) {
+                        Tag<Item> tag = TagRegistry.item(new Identifier(parts[1], parts[2]));
+                        if (tag != null && !tag.values().isEmpty())
+                            this.craftingMaterial = Ingredient.fromTag(tag);
+                    } else if (parts.length >= 2) {
+                        Item item = Registry.ITEM.get(new Identifier(parts[0], parts[1]));
+                        if (item != null)
+                            this.craftingMaterial = Ingredient.ofItems(item);
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         
