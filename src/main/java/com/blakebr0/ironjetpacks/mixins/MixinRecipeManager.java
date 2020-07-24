@@ -22,6 +22,7 @@ public class MixinRecipeManager {
     @Inject(method = "apply", at = @At(value = "INVOKE", target = "Ljava/util/Map;entrySet()Ljava/util/Set;", ordinal = 1),
             locals = LocalCapture.CAPTURE_FAILHARD)
     private void postApply(Map<Identifier, JsonObject> map, ResourceManager resourceManager, Profiler profiler, CallbackInfo ci, Map<RecipeType<?>, ImmutableMap.Builder<Identifier, Recipe<?>>> map2) {
-        JetpackDynamicRecipeManager.appendRecipes(map2);
+        ImmutableMap.Builder<Identifier, Recipe<?>> builder = map2.computeIfAbsent(RecipeType.CRAFTING, recipeType -> ImmutableMap.builder());
+        JetpackDynamicRecipeManager.appendRecipes(builder::put);
     }
 }

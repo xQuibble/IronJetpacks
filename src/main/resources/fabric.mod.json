@@ -14,6 +14,9 @@
   "entrypoints": {
     "main": [
       "com.blakebr0.ironjetpacks.IronJetpacks"
+    ],
+    "kubejs-set-recipes": [
+      "com.blakebr0.ironjetpacks.compat.kubejs.KubeJSCompat"
     ]
   },
   "mixins": [

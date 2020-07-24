@@ -20,10 +20,10 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class JetpackDynamicRecipeManager {
-    public static void appendRecipes(Map<RecipeType<?>, ImmutableMap.Builder<Identifier, Recipe<?>>> recipes) {
-        ImmutableMap.Builder<Identifier, Recipe<?>> builder = recipes.computeIfAbsent(RecipeType.CRAFTING, recipeType -> ImmutableMap.builder());
+    public static void appendRecipes(BiConsumer<Identifier, Recipe<?>> appender) {
         JetpackRegistry.getInstance().getAllJetpacks().forEach(jetpack -> {
             ShapedRecipe cell = makeCellRecipe(jetpack);
             ShapedRecipe thruster = makeThrusterRecipe(jetpack);
@@ -31,15 +31,15 @@ public class JetpackDynamicRecipeManager {
             ShapedRecipe jetpackSelf = makeJetpackRecipe(jetpack);
             JetpackUpgradeRecipe jetpackUpgrade = makeJetpackUpgradeRecipe(jetpack);
             if (cell != null)
-                builder.put(cell.getId(), cell);
+                appender.accept(cell.getId(), cell);
             if (thruster != null)
-                builder.put(thruster.getId(), thruster);
+                appender.accept(thruster.getId(), thruster);
             if (capacitor != null)
-                builder.put(capacitor.getId(), capacitor);
+                appender.accept(capacitor.getId(), capacitor);
             if (jetpackSelf != null)
-                builder.put(jetpackSelf.getId(), jetpackSelf);
+                appender.accept(jetpackSelf.getId(), jetpackSelf);
             if (jetpackUpgrade != null)
-                builder.put(jetpackUpgrade.getId(), jetpackUpgrade);
+                appender.accept(jetpackUpgrade.getId(), jetpackUpgrade);
         });
     }
     
