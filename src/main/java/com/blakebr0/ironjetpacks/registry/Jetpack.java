@@ -115,7 +115,7 @@ public class Jetpack {
                     String[] parts = craftingMaterialString.split(":");
                     if (parts.length >= 3 && this.craftingMaterialString.startsWith("tag:")) {
                         Tag<Item> tag = TagRegistry.item(new Identifier(parts[1], parts[2]));
-                        if (tag != null && !tag.values().isEmpty())
+                        if (tag != null)
                             this.craftingMaterial = Ingredient.fromTag(tag);
                     } else if (parts.length >= 2) {
                         Item item = Registry.ITEM.get(new Identifier(parts[0], parts[1]));
