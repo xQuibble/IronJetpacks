@@ -28,6 +28,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Lazy;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -38,10 +39,13 @@ import java.util.List;
 
 public class JetpackItem extends DyeableArmorItem implements Colored, DyeableItem, Enableable, EnergyHolder, TickableArmor, CustomModeledArmor, CustomTexturedArmor, DurabilityBarItem {
     private final Jetpack jetpack;
+    @Environment(EnvType.CLIENT)
+    private final Lazy<JetpackModel> model;
     
     public JetpackItem(Jetpack jetpack, Settings settings) {
         super(JetpackUtils.makeArmorMaterial(jetpack), EquipmentSlot.CHEST, settings.maxDamage(0).rarity(jetpack.rarity));
         this.jetpack = jetpack;
+        this.model = new Lazy<>(() -> new JetpackModel(this));
     }
     
     @Override
@@ -195,7 +199,7 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
     @Environment(EnvType.CLIENT)
     @Override
     public BipedEntityModel<LivingEntity> getArmorModel(LivingEntity entity, ItemStack stack, EquipmentSlot slot, BipedEntityModel<LivingEntity> _default) {
-        return new JetpackModel(this);
+        return model.get();
     }
     
     @Environment(EnvType.CLIENT)
