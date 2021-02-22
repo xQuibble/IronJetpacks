@@ -40,12 +40,11 @@ import java.util.List;
 public class JetpackItem extends DyeableArmorItem implements Colored, DyeableItem, Enableable, EnergyHolder, TickableArmor, CustomModeledArmor, CustomTexturedArmor, DurabilityBarItem {
     private final Jetpack jetpack;
     @Environment(EnvType.CLIENT)
-    private final Lazy<JetpackModel> model;
+    private JetpackModel model;
     
     public JetpackItem(Jetpack jetpack, Settings settings) {
         super(JetpackUtils.makeArmorMaterial(jetpack), EquipmentSlot.CHEST, settings.maxDamage(0).rarity(jetpack.rarity));
         this.jetpack = jetpack;
-        this.model = new Lazy<>(() -> new JetpackModel(this));
     }
     
     @Override
@@ -199,7 +198,8 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
     @Environment(EnvType.CLIENT)
     @Override
     public BipedEntityModel<LivingEntity> getArmorModel(LivingEntity entity, ItemStack stack, EquipmentSlot slot, BipedEntityModel<LivingEntity> _default) {
-        return model.get();
+        if (model == null) model = new JetpackModel(this);
+        return model;
     }
     
     @Environment(EnvType.CLIENT)
