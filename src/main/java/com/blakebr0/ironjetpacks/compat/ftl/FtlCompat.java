@@ -8,9 +8,8 @@ import dev.technici4n.fasttransferlib.api.energy.base.SimpleItemEnergyIo;
 public class FtlCompat {
     public static void init() {
         for (Jetpack jetpack : JetpackRegistry.getInstance().getAllJetpacks()) {
-            double maxInput = jetpack.item.getMaxInput(null);
-            double maxOutput = jetpack.item.getMaxOutput(null);
-            EnergyApi.ITEM.register(SimpleItemEnergyIo.getProvider(jetpack.capacity, maxInput, maxOutput), jetpack.item);
+            double maxInput = jetpack.item.getMaxInput();
+            EnergyApi.ITEM.registerForItems(SimpleItemEnergyIo.getProvider(jetpack.capacity, maxInput, Math.max(maxInput, jetpack.usage * jetpack.sprintFuel)), jetpack.item);
         }
     }
 }

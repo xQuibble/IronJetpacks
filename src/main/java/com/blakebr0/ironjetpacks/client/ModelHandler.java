@@ -30,11 +30,11 @@ public class ModelHandler {
     private static final Logger LOGGER = LogManager.getLogger(IronJetpacks.NAME);
     
     public static void onClientSetup() {
-        ModelLoadingRegistry.INSTANCE.registerAppender((resourceManager, consumer) -> {
-            consumer.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "cell"), "inventory"));
-            consumer.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "capacitor"), "inventory"));
-            consumer.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "thruster"), "inventory"));
-            consumer.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "jetpack"), "inventory"));
+        ModelLoadingRegistry.INSTANCE.registerModelProvider((manager, out) -> {
+            out.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "cell"), "inventory"));
+            out.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "capacitor"), "inventory"));
+            out.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "thruster"), "inventory"));
+            out.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "jetpack"), "inventory"));
         });
         Identifier cell = new Identifier(IronJetpacks.MOD_ID, "item/cell");
         Identifier capacitor = new Identifier(IronJetpacks.MOD_ID, "item/capacitor");

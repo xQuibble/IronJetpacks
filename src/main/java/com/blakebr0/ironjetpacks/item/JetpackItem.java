@@ -1,7 +1,5 @@
 package com.blakebr0.ironjetpacks.item;
 
-import com.blakebr0.ironjetpacks.IronJetpacks;
-import com.blakebr0.ironjetpacks.client.model.JetpackModel;
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
 import com.blakebr0.ironjetpacks.lib.ModTooltips;
@@ -9,17 +7,15 @@ import com.blakebr0.ironjetpacks.mixins.ServerPlayNetworkHandlerAccessor;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
-import me.shedaniel.cloth.api.armor.v1.CustomModeledArmor;
-import me.shedaniel.cloth.api.armor.v1.CustomTexturedArmor;
-import me.shedaniel.cloth.api.armor.v1.TickableArmor;
-import me.shedaniel.cloth.api.durability.bar.DurabilityBarItem;
+import dev.architectury.extensions.ItemExtension;
+import dev.technici4n.fasttransferlib.api.Simulation;
+import dev.technici4n.fasttransferlib.api.energy.EnergyApi;
+import dev.technici4n.fasttransferlib.api.energy.EnergyIo;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.item.TooltipContext;
-import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundTag;
@@ -28,19 +24,15 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Lazy;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.StringUtils;
-import team.reborn.energy.*;
 
 import java.util.List;
 
-public class JetpackItem extends DyeableArmorItem implements Colored, DyeableItem, Enableable, EnergyHolder, TickableArmor, CustomModeledArmor, CustomTexturedArmor, DurabilityBarItem {
+public class JetpackItem extends DyeableArmorItem implements Colored, DyeableItem, Enableable, ItemExtension {
     private final Jetpack jetpack;
-    @Environment(EnvType.CLIENT)
-    private JetpackModel model;
     
     public JetpackItem(Jetpack jetpack, Settings settings) {
         super(JetpackUtils.makeArmorMaterial(jetpack), EquipmentSlot.CHEST, settings.maxDamage(0).rarity(jetpack.rarity));
@@ -77,12 +69,13 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
                     
                     boolean creative = info.creative;
                     
-                    EnergyHandler energy = jetpack.getEnergyStorage(chest);
-                    if (!creative) {
-                        energy.extract(usage);
-                    }
+                    EnergyIo energy = EnergyApi.ITEM.find(stack, null);
                     
-                    if (energy.getEnergy() > 0 || creative) {
+                    if (energy.extract(usage, Simulation.SIMULATE) > 0 || creative) {
+                        if (!creative) {
+                            energy.extract(usage, Simulation.ACT);
+                        }
+                        
                         double motionY = player.getVelocity().getY();
                         if (InputHandler.isHoldingUp(player)) {
                             if (!hover) {
@@ -135,17 +128,15 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
         return ModConfigs.get().general.enchantableJetpacks && this.jetpack.enchantablilty > 0;
     }
     
-    @Environment(EnvType.CLIENT)
     @Override
-    public double getDurabilityBarProgress(ItemStack stack) {
-        EnergyHandler energy = this.getEnergyStorage(stack);
-        double stored = energy.getMaxStored() - energy.getEnergy();
-        return stored / energy.getMaxStored();
+    public int getItemBarStep(ItemStack stack) {
+        EnergyIo energy = EnergyApi.ITEM.find(stack, null);
+        double stored = energy.getEnergyCapacity() - energy.getEnergy();
+        return (int) Math.round(13.0F - (stored / energy.getEnergyCapacity()) * 13.0F);
     }
     
-    @Environment(EnvType.CLIENT)
     @Override
-    public boolean hasDurabilityBar(ItemStack stack) {
+    public boolean isItemBarVisible(ItemStack stack) {
         return !this.jetpack.creative;
     }
     
@@ -153,7 +144,7 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
     @Override
     public void appendTooltip(ItemStack stack, World world, List<Text> tooltip, TooltipContext advanced) {
         if (!this.jetpack.creative) {
-            EnergyHandler energy = this.getEnergyStorage(stack);
+            EnergyIo energy = EnergyApi.ITEM.find(stack, null);
             tooltip.add(new LiteralText(UnitUtils.formatEnergy(energy.getEnergy(), null)).formatted(Formatting.GRAY).append(" / ").append(new LiteralText(UnitUtils.formatEnergy(jetpack.capacity, null))));
         } else {
             tooltip.add(new LiteralText("-1 E / ").formatted(Formatting.GRAY).append(ModTooltips.INFINITE.color(Formatting.GRAY)).append(" E"));
@@ -189,23 +180,10 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
             
             if (!jetpack.creative) {
                 ItemStack stack = new ItemStack(this);
-                Energy.of(stack).set(jetpack.capacity);
+                stack.getOrCreateTag().putDouble("energy", jetpack.capacity);
                 stacks.add(stack);
             }
         }
-    }
-    
-    @Environment(EnvType.CLIENT)
-    @Override
-    public BipedEntityModel<LivingEntity> getArmorModel(LivingEntity entity, ItemStack stack, EquipmentSlot slot, BipedEntityModel<LivingEntity> _default) {
-        if (model == null) model = new JetpackModel(this);
-        return model;
-    }
-    
-    @Environment(EnvType.CLIENT)
-    @Override
-    public String getArmorTexture(EquipmentSlot slot, ArmorItem armorItem, boolean secondLayer, String suffix) {
-        return suffix == null ? IronJetpacks.MOD_ID + ":textures/armor/jetpack.png" : IronJetpacks.MOD_ID + ":textures/armor/jetpack_overlay.png";
     }
     
     @Environment(EnvType.CLIENT)
@@ -243,29 +221,13 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
         return this.jetpack;
     }
     
-    public EnergyHandler getEnergyStorage(ItemStack stack) {
-        return Energy.of(stack);
-    }
-    
     // No output
-    @Override
-    public double getMaxOutput(EnergySide side) {
+    public double getMaxOutput() {
         return 0;
     }
     
-    @Override
-    public double getMaxInput(EnergySide side) {
+    public double getMaxInput() {
         return jetpack.capacity / 20.0;
-    }
-    
-    @Override
-    public double getMaxStoredPower() {
-        return jetpack.capacity;
-    }
-    
-    @Override
-    public EnergyTier getTier() {
-        return EnergyTier.INFINITE;
     }
     
     public boolean isEngineOn(ItemStack stack) {

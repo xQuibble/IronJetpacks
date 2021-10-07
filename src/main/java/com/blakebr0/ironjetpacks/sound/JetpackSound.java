@@ -21,7 +21,7 @@ public class JetpackSound extends MovingSoundInstance {
         super(ModSounds.JETPACK.get(), SoundCategory.PLAYERS);
         this.player = player;
         this.repeat = true;
-        PLAYING_FOR.put(player.getEntityId(), this);
+        PLAYING_FOR.put(player.getId(), this);
     }
     
     public static boolean playing(int entityId) {
@@ -30,14 +30,14 @@ public class JetpackSound extends MovingSoundInstance {
     
     @Override
     public void tick() {
-        BlockPos pos = this.player.getSenseCenterPos();
+        BlockPos pos = this.player.getBlockPos();
         this.x = (float) pos.getX();
         this.y = (float) pos.getY() - 10;
         this.z = (float) pos.getZ();
         
         if (!JetpackUtils.isFlying(this.player)) {
             synchronized (PLAYING_FOR) {
-                PLAYING_FOR.remove(this.player.getEntityId());
+                PLAYING_FOR.remove(this.player.getId());
                 setDone();
             }
         }

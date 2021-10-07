@@ -1,9 +1,9 @@
 package com.blakebr0.ironjetpacks.network.message;
 
 import com.blakebr0.ironjetpacks.handler.InputHandler;
-import net.fabricmc.fabric.api.network.PacketContext;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 public class UpdateInputMessage {
     private final boolean up;
@@ -35,9 +35,8 @@ public class UpdateInputMessage {
         buffer.writeBoolean(message.right);
     }
     
-    public static void onMessage(UpdateInputMessage message, PacketContext context) {
-        context.getTaskQueue().execute(() -> {
-            PlayerEntity player = context.getPlayer();
+    public static void onMessage(UpdateInputMessage message, MinecraftServer server, ServerPlayerEntity player) {
+        server.execute(() -> {
             if (player != null) {
                 InputHandler.update(player, message.up, message.down, message.forwards, message.backwards, message.left, message.right);
             }

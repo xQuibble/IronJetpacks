@@ -4,25 +4,26 @@ import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.config.ModJetpacks;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.registry.JetpackRegistry;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
 import net.minecraft.item.Item;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Lazy;
 import net.minecraft.util.registry.Registry;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.blakebr0.ironjetpacks.IronJetpacks.ITEM_GROUP;
 
 public class ModItems {
-    public static final Map<Identifier, Lazy<Item>> ENTRIES = Maps.newHashMap();
+    public static final Map<Identifier, Supplier<Item>> ENTRIES = Maps.newHashMap();
     
-    public static final Lazy<Item> STRAP = register("strap");
-    public static final Lazy<Item> BASIC_COIL = register("basic_coil");
-    public static final Lazy<Item> ADVANCED_COIL = register("advanced_coil");
-    public static final Lazy<Item> ELITE_COIL = register("elite_coil");
-    public static final Lazy<Item> ULTIMATE_COIL = register("ultimate_coil");
-    public static final Lazy<Item> EXPERT_COIL = register("expert_coil");
+    public static final Supplier<Item> STRAP = register("strap");
+    public static final Supplier<Item> BASIC_COIL = register("basic_coil");
+    public static final Supplier<Item> ADVANCED_COIL = register("advanced_coil");
+    public static final Supplier<Item> ELITE_COIL = register("elite_coil");
+    public static final Supplier<Item> ULTIMATE_COIL = register("ultimate_coil");
+    public static final Supplier<Item> EXPERT_COIL = register("expert_coil");
     
     public static void register() {
         Registry<Item> registry = Registry.ITEM;
@@ -59,11 +60,11 @@ public class ModItems {
         }
     }
     
-    private static Lazy<Item> register(String name) {
-        return register(name, new Lazy<>(() -> new Item(new Item.Settings().group(ITEM_GROUP))));
+    private static Supplier<Item> register(String name) {
+        return register(name, Suppliers.memoize(() -> new Item(new Item.Settings().group(ITEM_GROUP))));
     }
     
-    private static Lazy<Item> register(String name, Lazy<Item> item) {
+    private static Supplier<Item> register(String name, Supplier<Item> item) {
         Identifier loc = new Identifier(IronJetpacks.MOD_ID, name);
         ENTRIES.put(loc, item);
         return item;

@@ -48,7 +48,7 @@ public class JetpackClientHandler {
                         mc.particleManager.addParticle(ParticleTypes.SMOKE, v.x, v.y, v.z, random, -0.2D, random);
                     }
                     
-                    if (ModConfigs.getClient().general.enableJetpackSounds && !JetpackSound.playing(mc.player.getEntityId())) {
+                    if (ModConfigs.getClient().general.enableJetpackSounds && !JetpackSound.playing(mc.player.getId())) {
                         mc.getSoundManager().play(new JetpackSound(mc.player));
                     }
                 }

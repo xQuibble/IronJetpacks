@@ -3,6 +3,7 @@ package com.blakebr0.ironjetpacks.util;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
+import dev.technici4n.fasttransferlib.api.energy.EnergyApi;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.entity.EquipmentSlot;
@@ -19,9 +20,8 @@ public class JetpackUtils {
         ItemStack stack = player.getEquippedStack(EquipmentSlot.CHEST);
         if (!stack.isEmpty()) {
             Item item = stack.getItem();
-            if (item instanceof JetpackItem) {
-                JetpackItem jetpack = (JetpackItem) item;
-                if (jetpack.isEngineOn(stack) && (jetpack.getEnergyStorage(stack).getEnergy() > 0 || player.isCreative() || jetpack.getJetpack().creative)) {
+            if (item instanceof JetpackItem jetpack) {
+                if (jetpack.isEngineOn(stack) && (EnergyApi.ITEM.find(stack, null).getEnergy() > 0 || player.isCreative() || jetpack.getJetpack().creative)) {
                     if (jetpack.isHovering(stack)) {
                         return !player.isOnGround();
                     } else {

@@ -54,7 +54,7 @@ public class ModJetpacks {
     
     public static void loadJsons() {
         final JetpackRegistry registry = JetpackRegistry.getInstance();
-        File dir = FabricLoader.getInstance().getConfigDirectory().toPath().resolve("iron-jetpacks/jetpacks").toFile();
+        File dir = FabricLoader.getInstance().getConfigDir().resolve("iron-jetpacks/jetpacks").toFile();
         Gson gson = Serializers.initGson();
         
         if (!dir.exists() && dir.mkdirs()) {

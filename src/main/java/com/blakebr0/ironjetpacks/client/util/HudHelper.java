@@ -4,13 +4,14 @@ import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.blakebr0.ironjetpacks.lib.ModTooltips;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
+import dev.technici4n.fasttransferlib.api.energy.EnergyApi;
+import dev.technici4n.fasttransferlib.api.energy.EnergyIo;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.Window;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Formatting;
-import team.reborn.energy.EnergyHandler;
 
 @Environment(EnvType.CLIENT)
 public class HudHelper {
@@ -39,15 +40,15 @@ public class HudHelper {
     
     public static int getEnergyBarScaled(JetpackItem jetpack, ItemStack stack) {
         if (jetpack.getJetpack().creative) return 156;
-        EnergyHandler energy = jetpack.getEnergyStorage(stack);
+        EnergyIo energy = EnergyApi.ITEM.find(stack, null);
         double i = energy.getEnergy();
-        double j = energy.getMaxStored();
+        double j = energy.getEnergyCapacity();
         return (int) (j != 0 && i != 0 ? (long) i * 156 / j : 0);
     }
     
     public static String getFuel(JetpackItem jetpack, ItemStack stack) {
         if (jetpack.getJetpack().creative) return ModTooltips.INFINITE.asFormattedString() + Formatting.GRAY + " E";
-        double number = jetpack.getEnergyStorage(stack).getEnergy();
+        double number = EnergyApi.ITEM.find(stack, null).getEnergy();
         return UnitUtils.formatEnergy(number, Formatting.GRAY);
     }
     

@@ -1,5 +1,6 @@
 package com.blakebr0.ironjetpacks;
 
+import com.blakebr0.ironjetpacks.compat.ftl.FtlCompat;
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.crafting.ModRecipeSerializers;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
@@ -17,23 +18,11 @@ import net.fabricmc.fabric.api.event.server.ServerStopCallback;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.dedicated.MinecraftDedicatedServer;
 import net.minecraft.util.Identifier;
-import org.apache.logging.log4j.LogManager;
-
-import java.util.function.Supplier;
 
 public class IronJetpacks implements ModInitializer {
     public static final String MOD_ID = "iron-jetpacks";
     public static final String NAME = "Iron Jetpacks";
-    
-    public static Supplier<MinecraftServer> serverSupplier = () -> {
-        Object instance = FabricLoader.getInstance().getGameInstance();
-        if (instance instanceof MinecraftDedicatedServer)
-            return (MinecraftServer) instance;
-        return null;
-    };
     
     public static final ItemGroup ITEM_GROUP = FabricItemGroupBuilder.create(new Identifier(MOD_ID, MOD_ID))
             .icon(() -> {
@@ -59,13 +48,7 @@ public class IronJetpacks implements ModInitializer {
                 throw new RuntimeException(e);
             }
         }
-        if (FabricLoader.getInstance().isModLoaded("fasttransferlib")) {
-            try {
-                Class.forName("com.blakebr0.ironjetpacks.compat.ftl.FtlCompat").getMethod("init").invoke(null);
-            } catch (Exception e) {
-                LogManager.getLogger(NAME).error("Exception thrown while loading FTL energy compat: " + e);
-            }
-        }
+        FtlCompat.init();
         
         ServerStopCallback.EVENT.register(server -> InputHandler.clear());
         PlayerChangeWorldCallback.EVENT.register((playerEntity, oldWorld, newWorld) -> InputHandler.onChangeDimension(playerEntity));

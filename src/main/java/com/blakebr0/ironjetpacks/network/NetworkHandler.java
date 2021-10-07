@@ -7,8 +7,8 @@ import com.blakebr0.ironjetpacks.network.message.UpdateInputMessage;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 
@@ -17,21 +17,12 @@ public class NetworkHandler {
     private static int id = 0;
     
     public static void onCommonSetup() {
-        ServerSidePacketRegistry.INSTANCE.register(PACKET_ID, (packetContext, packetByteBuf) -> {
-            int id = packetByteBuf.readInt();
+        ServerPlayNetworking.registerGlobalReceiver(PACKET_ID, (server, player, handler, buf, responseSender) -> {
+            int id = buf.readInt();
             switch (id) {
-                case 0: {
-                    ToggleHoverMessage.onMessage(ToggleHoverMessage.read(packetByteBuf), packetContext);
-                    break;
-                }
-                case 1: {
-                    UpdateInputMessage.onMessage(UpdateInputMessage.read(packetByteBuf), packetContext);
-                    break;
-                }
-                case 2: {
-                    ToggleEngineMessage.onMessage(ToggleEngineMessage.read(packetByteBuf), packetContext);
-                    break;
-                }
+                case 0 -> ToggleHoverMessage.onMessage(ToggleHoverMessage.read(buf), server, player);
+                case 1 -> UpdateInputMessage.onMessage(UpdateInputMessage.read(buf), server, player);
+                case 2 -> ToggleEngineMessage.onMessage(ToggleEngineMessage.read(buf), server, player);
             }
         });
     }
@@ -41,7 +32,7 @@ public class NetworkHandler {
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
         buf.writeInt(0);
         ToggleHoverMessage.write(message, buf);
-        ClientSidePacketRegistry.INSTANCE.sendToServer(PACKET_ID, buf);
+        ClientPlayNetworking.send(PACKET_ID, buf);
     }
     
     @Environment(EnvType.CLIENT)
@@ -49,7 +40,7 @@ public class NetworkHandler {
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
         buf.writeInt(1);
         UpdateInputMessage.write(message, buf);
-        ClientSidePacketRegistry.INSTANCE.sendToServer(PACKET_ID, buf);
+        ClientPlayNetworking.send(PACKET_ID, buf);
     }
     
     @Environment(EnvType.CLIENT)
@@ -57,6 +48,6 @@ public class NetworkHandler {
         PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
         buf.writeInt(2);
         ToggleEngineMessage.write(message, buf);
-        ClientSidePacketRegistry.INSTANCE.sendToServer(PACKET_ID, buf);
+        ClientPlayNetworking.send(PACKET_ID, buf);
     }
 }
