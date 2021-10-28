@@ -1,15 +1,15 @@
 package com.blakebr0.ironjetpacks.client.model;
 
 import com.blakebr0.ironjetpacks.item.JetpackItem;
-import dev.technici4n.fasttransferlib.api.energy.EnergyApi;
-import dev.technici4n.fasttransferlib.api.energy.EnergyIo;
+import com.blakebr0.ironjetpacks.item.storage.ItemSlotStorage;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
+import team.reborn.energy.api.EnergyStorage;
 
 /*
  * This is a slightly modified version of the model from Simply Jetpacks
@@ -121,9 +121,9 @@ public class JetpackModel extends BipedEntityModel<LivingEntity> {
             this.energyBarLeft[5].visible = true;
             this.energyBarRight[5].visible = true;
         } else {
-            ItemStack chest = entity.getEquippedStack(EquipmentSlot.CHEST);
-            EnergyIo energy = EnergyApi.ITEM.find(chest, null);
-            double stored = energy.getEnergy() / energy.getEnergyCapacity();
+            ItemSlotStorage storage = new ItemSlotStorage(entity, EquipmentSlot.CHEST);
+            EnergyStorage energy = EnergyStorage.ITEM.find(storage.getStack(), ContainerItemContext.ofSingleSlot(storage));
+            double stored = energy.getAmount() / energy.getCapacity();
             
             int state = 0;
             if (stored > 0.8) {

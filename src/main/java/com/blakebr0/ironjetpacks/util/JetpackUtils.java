@@ -2,10 +2,11 @@ package com.blakebr0.ironjetpacks.util;
 
 import com.blakebr0.ironjetpacks.handler.InputHandler;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
+import com.blakebr0.ironjetpacks.item.storage.ItemSlotStorage;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
-import dev.technici4n.fasttransferlib.api.energy.EnergyApi;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ArmorMaterial;
@@ -14,6 +15,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+import team.reborn.energy.api.EnergyStorage;
 
 public class JetpackUtils {
     public static boolean isFlying(PlayerEntity player) {
@@ -21,7 +23,8 @@ public class JetpackUtils {
         if (!stack.isEmpty()) {
             Item item = stack.getItem();
             if (item instanceof JetpackItem jetpack) {
-                if (jetpack.isEngineOn(stack) && (EnergyApi.ITEM.find(stack, null).getEnergy() > 0 || player.isCreative() || jetpack.getJetpack().creative)) {
+                ItemSlotStorage storage = new ItemSlotStorage(player, EquipmentSlot.CHEST);
+                if (jetpack.isEngineOn(stack) && (EnergyStorage.ITEM.find(stack, ContainerItemContext.ofSingleSlot(storage)).getAmount() > 0 || player.isCreative() || jetpack.getJetpack().creative)) {
                     if (jetpack.isHovering(stack)) {
                         return !player.isOnGround();
                     } else {
@@ -71,7 +74,7 @@ public class JetpackUtils {
             public float getToughness() {
                 return 0;
             }
-    
+            
             @Override
             public float getKnockbackResistance() {
                 return 0;

@@ -2,17 +2,19 @@ package com.blakebr0.ironjetpacks.item;
 
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
+import com.blakebr0.ironjetpacks.item.storage.ItemSlotStorage;
+import com.blakebr0.ironjetpacks.item.storage.StackBaseStorage;
 import com.blakebr0.ironjetpacks.lib.ModTooltips;
 import com.blakebr0.ironjetpacks.mixins.ServerPlayNetworkHandlerAccessor;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
 import dev.architectury.extensions.ItemExtension;
-import dev.technici4n.fasttransferlib.api.Simulation;
-import dev.technici4n.fasttransferlib.api.energy.EnergyApi;
-import dev.technici4n.fasttransferlib.api.energy.EnergyIo;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.EquipmentSlot;
@@ -28,6 +30,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.StringUtils;
+import team.reborn.energy.api.EnergyStorage;
 
 import java.util.List;
 
@@ -68,53 +71,59 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
                     double usage = player.isSprinting() ? info.usage * info.sprintFuel : info.usage;
                     
                     boolean creative = info.creative;
+                    StackBaseStorage storage = new StackBaseStorage(stack.copy());
+    
+                    EnergyStorage energy = EnergyStorage.ITEM.find(stack.copy(), ContainerItemContext.ofPlayerSlot(player, storage));
                     
-                    EnergyIo energy = EnergyApi.ITEM.find(stack, null);
-                    
-                    if (energy.extract(usage, Simulation.SIMULATE) > 0 || creative) {
-                        if (!creative) {
-                            energy.extract(usage, Simulation.ACT);
-                        }
-                        
-                        double motionY = player.getVelocity().getY();
-                        if (InputHandler.isHoldingUp(player)) {
-                            if (!hover) {
-                                this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical));
-                            } else {
-                                if (InputHandler.isHoldingDown(player)) {
-                                    this.fly(player, Math.min(motionY + currentAccel, -info.speedHoverSlow));
-                                } else {
-                                    this.fly(player, Math.min(motionY + currentAccel, info.speedHover));
-                                }
+                    try (Transaction transaction = Transaction.openOuter()) {
+                        if (creative || energy.extract((long) usage, transaction) >= usage) {
+                            if (!creative) {
+                                transaction.commit();
+                                ItemStack newStack = storage.getResource().toStack();
+                                stack.setTag(newStack.getTag());
+                                stack.setCount(newStack.getCount());
                             }
-                        } else {
-                            this.fly(player, Math.min(motionY + currentAccel, -hoverSpeed));
-                        }
-                        
-                        float speedSideways = (float) (player.isSneaking() ? info.speedSide * 0.5F : info.speedSide);
-                        float speedForward = (float) (player.isSprinting() ? speedSideways * info.sprintSpeed : speedSideways);
-                        
-                        if (InputHandler.isHoldingForwards(player)) {
-                            player.updateVelocity(1, new Vec3d(0, 0, speedForward));
-                        }
-                        
-                        if (InputHandler.isHoldingBackwards(player)) {
-                            player.updateVelocity(1, new Vec3d(0, 0, -speedSideways * 0.8F));
-                        }
-                        
-                        if (InputHandler.isHoldingLeft(player)) {
-                            player.updateVelocity(1, new Vec3d(speedSideways, 0, 0));
-                        }
-                        
-                        if (InputHandler.isHoldingRight(player)) {
-                            player.updateVelocity(1, new Vec3d(-speedSideways, 0, 0));
-                        }
-                        
-                        if (!player.world.isClient()) {
-                            player.fallDistance = 0.0F;
-                            
-                            if (player instanceof ServerPlayerEntity) {
-                                ((ServerPlayNetworkHandlerAccessor) ((ServerPlayerEntity) player).networkHandler).setFloatingTicks(0);
+    
+                            double motionY = player.getVelocity().getY();
+                            if (InputHandler.isHoldingUp(player)) {
+                                if (!hover) {
+                                    this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical));
+                                } else {
+                                    if (InputHandler.isHoldingDown(player)) {
+                                        this.fly(player, Math.min(motionY + currentAccel, -info.speedHoverSlow));
+                                    } else {
+                                        this.fly(player, Math.min(motionY + currentAccel, info.speedHover));
+                                    }
+                                }
+                            } else {
+                                this.fly(player, Math.min(motionY + currentAccel, -hoverSpeed));
+                            }
+    
+                            float speedSideways = (float) (player.isSneaking() ? info.speedSide * 0.5F : info.speedSide);
+                            float speedForward = (float) (player.isSprinting() ? speedSideways * info.sprintSpeed : speedSideways);
+    
+                            if (InputHandler.isHoldingForwards(player)) {
+                                player.updateVelocity(1, new Vec3d(0, 0, speedForward));
+                            }
+    
+                            if (InputHandler.isHoldingBackwards(player)) {
+                                player.updateVelocity(1, new Vec3d(0, 0, -speedSideways * 0.8F));
+                            }
+    
+                            if (InputHandler.isHoldingLeft(player)) {
+                                player.updateVelocity(1, new Vec3d(speedSideways, 0, 0));
+                            }
+    
+                            if (InputHandler.isHoldingRight(player)) {
+                                player.updateVelocity(1, new Vec3d(-speedSideways, 0, 0));
+                            }
+    
+                            if (!player.world.isClient()) {
+                                player.fallDistance = 0.0F;
+        
+                                if (player instanceof ServerPlayerEntity) {
+                                    ((ServerPlayNetworkHandlerAccessor) ((ServerPlayerEntity) player).networkHandler).setFloatingTicks(0);
+                                }
                             }
                         }
                     }
@@ -130,9 +139,9 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
     
     @Override
     public int getItemBarStep(ItemStack stack) {
-        EnergyIo energy = EnergyApi.ITEM.find(stack, null);
-        double stored = energy.getEnergyCapacity() - energy.getEnergy();
-        return (int) Math.round(13.0F - (stored / energy.getEnergyCapacity()) * 13.0F);
+        EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withInitial(stack));
+        double stored = energy.getCapacity() - energy.getAmount();
+        return (int) Math.round(13.0F - (stored / energy.getCapacity()) * 13.0F);
     }
     
     @Override
@@ -144,8 +153,8 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
     @Override
     public void appendTooltip(ItemStack stack, World world, List<Text> tooltip, TooltipContext advanced) {
         if (!this.jetpack.creative) {
-            EnergyIo energy = EnergyApi.ITEM.find(stack, null);
-            tooltip.add(new LiteralText(UnitUtils.formatEnergy(energy.getEnergy(), null)).formatted(Formatting.GRAY).append(" / ").append(new LiteralText(UnitUtils.formatEnergy(jetpack.capacity, null))));
+            EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withInitial(stack));
+            tooltip.add(new LiteralText(UnitUtils.formatEnergy(energy.getAmount(), null)).formatted(Formatting.GRAY).append(" / ").append(new LiteralText(UnitUtils.formatEnergy(jetpack.capacity, null))));
         } else {
             tooltip.add(new LiteralText("-1 E / ").formatted(Formatting.GRAY).append(ModTooltips.INFINITE.color(Formatting.GRAY)).append(" E"));
         }
