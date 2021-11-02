@@ -123,7 +123,7 @@ public class JetpackModel extends BipedEntityModel<LivingEntity> {
         } else {
             ItemSlotStorage storage = new ItemSlotStorage(entity, EquipmentSlot.CHEST);
             EnergyStorage energy = EnergyStorage.ITEM.find(storage.getStack(), ContainerItemContext.ofSingleSlot(storage));
-            double stored = energy.getAmount() / energy.getCapacity();
+            double stored = (double) energy.getAmount() / energy.getCapacity();
             
             int state = 0;
             if (stored > 0.8) {
