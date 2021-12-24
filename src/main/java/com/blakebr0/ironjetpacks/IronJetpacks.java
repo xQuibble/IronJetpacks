@@ -7,10 +7,9 @@ import com.blakebr0.ironjetpacks.handler.InputHandler;
 import com.blakebr0.ironjetpacks.item.ModItems;
 import com.blakebr0.ironjetpacks.network.NetworkHandler;
 import com.blakebr0.ironjetpacks.sound.ModSounds;
+import dev.architectury.event.events.common.PlayerEvent;
 import me.sargunvohra.mcmods.autoconfig1u.AutoConfig;
 import me.sargunvohra.mcmods.autoconfig1u.serializer.JanksonConfigSerializer;
-import me.shedaniel.cloth.api.common.events.v1.PlayerChangeWorldCallback;
-import me.shedaniel.cloth.api.common.events.v1.PlayerLeaveCallback;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
@@ -51,7 +50,7 @@ public class IronJetpacks implements ModInitializer {
         FtlCompat.init();
         
         ServerStopCallback.EVENT.register(server -> InputHandler.clear());
-        PlayerChangeWorldCallback.EVENT.register((playerEntity, oldWorld, newWorld) -> InputHandler.onChangeDimension(playerEntity));
-        PlayerLeaveCallback.EVENT.register(InputHandler::onLogout);
+        PlayerEvent.CHANGE_DIMENSION.register((player, oldLevel, newLevel) -> InputHandler.onChangeDimension(player));
+        PlayerEvent.PLAYER_QUIT.register(InputHandler::onLogout);
     }
 }

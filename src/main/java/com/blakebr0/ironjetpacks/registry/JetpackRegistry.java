@@ -58,21 +58,14 @@ public class JetpackRegistry {
     }
     
     public Item getCoilForTier(int tier) {
-        switch (this.tiers.indexOf(tier)) {
-            case 0:
-            case 1:
-            case 2:
-                return ModItems.BASIC_COIL.get();
-            case 3:
-                return ModItems.ADVANCED_COIL.get();
-            case 4:
-                return ModItems.ELITE_COIL.get();
-            case 5:
-                return ModItems.ULTIMATE_COIL.get();
-            case 6:
-                return ModItems.EXPERT_COIL.get();
-        }
-        return null;
+        return switch (this.tiers.indexOf(tier)) {
+            case 0, 1, 2 -> ModItems.BASIC_COIL.get();
+            case 3 -> ModItems.ADVANCED_COIL.get();
+            case 4 -> ModItems.ELITE_COIL.get();
+            case 5 -> ModItems.ULTIMATE_COIL.get();
+            case 6 -> ModItems.EXPERT_COIL.get();
+            default -> null;
+        };
     }
     
     public boolean isErrored() {

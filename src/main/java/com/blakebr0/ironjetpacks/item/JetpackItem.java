@@ -2,7 +2,6 @@ package com.blakebr0.ironjetpacks.item;
 
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
-import com.blakebr0.ironjetpacks.item.storage.ItemSlotStorage;
 import com.blakebr0.ironjetpacks.item.storage.StackBaseStorage;
 import com.blakebr0.ironjetpacks.lib.ModTooltips;
 import com.blakebr0.ironjetpacks.mixins.ServerPlayNetworkHandlerAccessor;
@@ -13,7 +12,6 @@ import dev.architectury.extensions.ItemExtension;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.item.TooltipContext;

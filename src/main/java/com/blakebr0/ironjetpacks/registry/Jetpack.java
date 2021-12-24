@@ -3,7 +3,7 @@ package com.blakebr0.ironjetpacks.registry;
 import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.item.ComponentItem;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
-import net.fabricmc.fabric.api.tag.TagRegistry;
+import net.fabricmc.fabric.api.tag.TagFactory;
 import net.minecraft.item.Item;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.tag.Tag;
@@ -114,7 +114,7 @@ public class Jetpack {
                 if (!this.craftingMaterialString.equalsIgnoreCase("null")) {
                     String[] parts = craftingMaterialString.split(":");
                     if (parts.length >= 3 && this.craftingMaterialString.startsWith("tag:")) {
-                        Tag<Item> tag = TagRegistry.item(new Identifier(parts[1], parts[2]));
+                        Tag<Item> tag = TagFactory.ITEM.create(new Identifier(parts[1], parts[2]));
                         if (tag != null)
                             this.craftingMaterial = Ingredient.fromTag(tag);
                     } else if (parts.length >= 2) {

@@ -22,8 +22,7 @@ public class ToggleEngineMessage {
             if (player != null) {
                 ItemStack stack = player.getEquippedStack(EquipmentSlot.CHEST);
                 Item item = stack.getItem();
-                if (item instanceof JetpackItem) {
-                    JetpackItem jetpack = (JetpackItem) item;
+                if (item instanceof JetpackItem jetpack) {
                     jetpack.toggleEngine(stack);
                 }
             }
