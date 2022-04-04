@@ -7,15 +7,15 @@ import com.mojang.datafixers.util.Pair;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.ModelBakeSettings;
-import net.minecraft.client.render.model.ModelLoader;
-import net.minecraft.client.render.model.UnbakedModel;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.util.ModelIdentifier;
-import net.minecraft.client.util.SpriteIdentifier;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.resources.model.ModelState;
+import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,38 +31,38 @@ public class ModelHandler {
     
     public static void onClientSetup() {
         ModelLoadingRegistry.INSTANCE.registerModelProvider((manager, out) -> {
-            out.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "cell"), "inventory"));
-            out.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "capacitor"), "inventory"));
-            out.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "thruster"), "inventory"));
-            out.accept(new ModelIdentifier(new Identifier(IronJetpacks.MOD_ID, "jetpack"), "inventory"));
+            out.accept(new ModelResourceLocation(new ResourceLocation(IronJetpacks.MOD_ID, "cell"), "inventory"));
+            out.accept(new ModelResourceLocation(new ResourceLocation(IronJetpacks.MOD_ID, "capacitor"), "inventory"));
+            out.accept(new ModelResourceLocation(new ResourceLocation(IronJetpacks.MOD_ID, "thruster"), "inventory"));
+            out.accept(new ModelResourceLocation(new ResourceLocation(IronJetpacks.MOD_ID, "jetpack"), "inventory"));
         });
-        Identifier cell = new Identifier(IronJetpacks.MOD_ID, "item/cell");
-        Identifier capacitor = new Identifier(IronJetpacks.MOD_ID, "item/capacitor");
-        Identifier thruster = new Identifier(IronJetpacks.MOD_ID, "item/thruster");
-        Identifier jetpack = new Identifier(IronJetpacks.MOD_ID, "item/jetpack");
-        Map<ModelIdentifier, UnbakedModel> modelMap = Maps.newHashMap();
+        ResourceLocation cell = new ResourceLocation(IronJetpacks.MOD_ID, "item/cell");
+        ResourceLocation capacitor = new ResourceLocation(IronJetpacks.MOD_ID, "item/capacitor");
+        ResourceLocation thruster = new ResourceLocation(IronJetpacks.MOD_ID, "item/thruster");
+        ResourceLocation jetpack = new ResourceLocation(IronJetpacks.MOD_ID, "item/jetpack");
+        Map<ModelResourceLocation, UnbakedModel> modelMap = Maps.newHashMap();
         JetpackRegistry.getInstance().getAllJetpacks().forEach(pack -> {
-            Identifier cellLocation = Registry.ITEM.getId(pack.cell);
+            ResourceLocation cellLocation = Registry.ITEM.getKey(pack.cell);
             if (cellLocation != null) {
-                ModelIdentifier location = new ModelIdentifier(cellLocation, "inventory");
+                ModelResourceLocation location = new ModelResourceLocation(cellLocation, "inventory");
                 provideModel(modelMap, location, cell);
             }
             
-            Identifier capacitorLocation = Registry.ITEM.getId(pack.capacitor);
+            ResourceLocation capacitorLocation = Registry.ITEM.getKey(pack.capacitor);
             if (capacitorLocation != null) {
-                ModelIdentifier location = new ModelIdentifier(capacitorLocation, "inventory");
+                ModelResourceLocation location = new ModelResourceLocation(capacitorLocation, "inventory");
                 provideModel(modelMap, location, capacitor);
             }
             
-            Identifier thrusterLocation = Registry.ITEM.getId(pack.thruster);
+            ResourceLocation thrusterLocation = Registry.ITEM.getKey(pack.thruster);
             if (thrusterLocation != null) {
-                ModelIdentifier location = new ModelIdentifier(thrusterLocation, "inventory");
+                ModelResourceLocation location = new ModelResourceLocation(thrusterLocation, "inventory");
                 provideModel(modelMap, location, thruster);
             }
             
-            Identifier jetpackLocation = Registry.ITEM.getId(pack.item);
+            ResourceLocation jetpackLocation = Registry.ITEM.getKey(pack.item.get());
             if (jetpackLocation != null) {
-                ModelIdentifier location = new ModelIdentifier(jetpackLocation, "inventory");
+                ModelResourceLocation location = new ModelResourceLocation(jetpackLocation, "inventory");
                 provideModel(modelMap, location, jetpack);
             }
         });
@@ -71,20 +71,20 @@ public class ModelHandler {
         });
     }
     
-    private static void provideModel(Map<ModelIdentifier, UnbakedModel> modelMap, ModelIdentifier modelIdentifier, Identifier redirectedId) {
+    private static void provideModel(Map<ModelResourceLocation, UnbakedModel> modelMap, ModelResourceLocation modelIdentifier, ResourceLocation redirectedId) {
         modelMap.put(modelIdentifier, new UnbakedModel() {
             @Override
-            public Collection<Identifier> getModelDependencies() {
+            public Collection<ResourceLocation> getDependencies() {
                 return Collections.emptyList();
             }
             
             @Override
-            public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
+            public Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
                 return Collections.emptyList();
             }
             
             @Override
-            public BakedModel bake(ModelLoader loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer, Identifier modelId) {
+            public BakedModel bake(ModelBakery loader, Function<Material, TextureAtlasSprite> textureGetter, ModelState rotationContainer, ResourceLocation modelId) {
                 return loader.bake(redirectedId, rotationContainer);
             }
         });

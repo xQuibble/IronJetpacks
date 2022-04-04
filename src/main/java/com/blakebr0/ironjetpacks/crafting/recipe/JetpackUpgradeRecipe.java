@@ -4,25 +4,25 @@ import com.blakebr0.ironjetpacks.crafting.ModRecipeSerializers;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.blakebr0.ironjetpacks.mixins.ShapedRecipeAccessor;
 import com.google.gson.JsonObject;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.ShapedRecipe;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 
 public class JetpackUpgradeRecipe extends ShapedRecipe {
-    public JetpackUpgradeRecipe(Identifier id, String group, int recipeWidth, int recipeHeight, DefaultedList<Ingredient> inputs, ItemStack output) {
+    public JetpackUpgradeRecipe(ResourceLocation id, String group, int recipeWidth, int recipeHeight, NonNullList<Ingredient> inputs, ItemStack output) {
         super(id, group, recipeWidth, recipeHeight, inputs, output);
     }
     
     @Override
-    public ItemStack craft(CraftingInventory inv) {
-        ItemStack jetpack = inv.getInvStack(4);
-        ItemStack result = this.getOutput().copy();
+    public ItemStack assemble(CraftingContainer inv) {
+        ItemStack jetpack = inv.getItem(4);
+        ItemStack result = this.getResultItem().copy();
         
         if (!jetpack.isEmpty() && jetpack.getItem() instanceof JetpackItem) {
             CompoundTag tag = jetpack.getTag();
@@ -42,37 +42,37 @@ public class JetpackUpgradeRecipe extends ShapedRecipe {
     
     public static class Serializer implements RecipeSerializer<JetpackUpgradeRecipe> {
         @Override
-        public JetpackUpgradeRecipe read(Identifier recipeId, JsonObject json) {
-            ShapedRecipe recipe = RecipeSerializer.SHAPED.read(recipeId, json);
-            return new JetpackUpgradeRecipe(recipeId, ((ShapedRecipeAccessor) recipe).getGroup(), recipe.getWidth(), recipe.getHeight(), recipe.getPreviewInputs(), recipe.getOutput());
+        public JetpackUpgradeRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
+            ShapedRecipe recipe = RecipeSerializer.SHAPED_RECIPE.fromJson(recipeId, json);
+            return new JetpackUpgradeRecipe(recipeId, ((ShapedRecipeAccessor) recipe).getGroup(), recipe.getWidth(), recipe.getHeight(), recipe.getIngredients(), recipe.getResultItem());
         }
         
         @Override
-        public JetpackUpgradeRecipe read(Identifier recipeId, PacketByteBuf buffer) {
+        public JetpackUpgradeRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
             int i = buffer.readVarInt();
             int j = buffer.readVarInt();
-            String s = buffer.readString(32767);
-            DefaultedList<Ingredient> inputs = DefaultedList.ofSize(i * j, Ingredient.EMPTY);
+            String s = buffer.readUtf(32767);
+            NonNullList<Ingredient> inputs = NonNullList.withSize(i * j, Ingredient.EMPTY);
             
             for (int k = 0; k < inputs.size(); k++) {
-                inputs.set(k, Ingredient.fromPacket(buffer));
+                inputs.set(k, Ingredient.fromNetwork(buffer));
             }
             
-            ItemStack output = buffer.readItemStack();
+            ItemStack output = buffer.readItem();
             return new JetpackUpgradeRecipe(recipeId, s, i, j, inputs, output);
         }
         
         @Override
-        public void write(PacketByteBuf buffer, JetpackUpgradeRecipe recipe) {
+        public void toNetwork(FriendlyByteBuf buffer, JetpackUpgradeRecipe recipe) {
             buffer.writeVarInt(recipe.getWidth());
             buffer.writeVarInt(recipe.getHeight());
-            buffer.writeString(((ShapedRecipeAccessor) recipe).getGroup());
+            buffer.writeUtf(((ShapedRecipeAccessor) recipe).getGroup());
             
-            for (Ingredient ingredient : recipe.getPreviewInputs()) {
-                ingredient.write(buffer);
+            for (Ingredient ingredient : recipe.getIngredients()) {
+                ingredient.toNetwork(buffer);
             }
             
-            buffer.writeItemStack(recipe.getOutput());
+            buffer.writeItem(recipe.getResultItem());
         }
     }
 }

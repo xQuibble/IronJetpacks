@@ -3,13 +3,15 @@ package com.blakebr0.ironjetpacks.registry;
 import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.item.ComponentItem;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
-import net.fabricmc.fabric.api.tag.TagFactory;
-import net.minecraft.item.Item;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.tag.Tag;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Rarity;
-import net.minecraft.util.registry.Registry;
+import com.google.common.base.Suppliers;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.crafting.Ingredient;
+
+import java.util.function.Supplier;
 
 public class Jetpack {
     public String name;
@@ -19,7 +21,7 @@ public class Jetpack {
     public int enchantablilty;
     public String craftingMaterialString;
     private Ingredient craftingMaterial;
-    public JetpackItem item;
+    public Supplier<JetpackItem> item;
     public boolean creative = false;
     public boolean disabled = false;
     public Rarity rarity = Rarity.COMMON;
@@ -43,7 +45,7 @@ public class Jetpack {
         this.armorPoints = armorPoints;
         this.enchantablilty = enchantability;
         this.craftingMaterialString = craftingMaterialString;
-        this.item = new JetpackItem(this, new Item.Settings().group(IronJetpacks.ITEM_GROUP));
+        this.item = Suppliers.memoize(() -> new JetpackItem(this, new Item.Properties().tab(IronJetpacks.ITEM_GROUP)));
     }
     
     public Jetpack setStats(double capacity, double usage, double speedVert, double accelVert, double speedSide, double speedHover, double speedHoverSlow, double sprintSpeed, double sprintFuel) {
@@ -114,13 +116,13 @@ public class Jetpack {
                 if (!this.craftingMaterialString.equalsIgnoreCase("null")) {
                     String[] parts = craftingMaterialString.split(":");
                     if (parts.length >= 3 && this.craftingMaterialString.startsWith("tag:")) {
-                        Tag<Item> tag = TagFactory.ITEM.create(new Identifier(parts[1], parts[2]));
+                        TagKey<Item> tag = TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(parts[1], parts[2]));
                         if (tag != null)
-                            this.craftingMaterial = Ingredient.fromTag(tag);
+                            this.craftingMaterial = Ingredient.of(tag);
                     } else if (parts.length >= 2) {
-                        Item item = Registry.ITEM.get(new Identifier(parts[0], parts[1]));
+                        Item item = Registry.ITEM.get(new ResourceLocation(parts[0], parts[1]));
                         if (item != null)
-                            this.craftingMaterial = Ingredient.ofItems(item);
+                            this.craftingMaterial = Ingredient.of(item);
                     }
                 }
             } catch (Exception e) {

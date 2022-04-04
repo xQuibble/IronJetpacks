@@ -7,45 +7,44 @@ import com.blakebr0.ironjetpacks.sound.JetpackSound;
 import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.options.ParticlesOption;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.util.math.Vec3d;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.ParticleStatus;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import java.util.Random;
 
 @Environment(EnvType.CLIENT)
 public class JetpackClientHandler {
     private static final Random RANDOM = new Random();
     
-    public static void onClientTick(MinecraftClient client) {
-        MinecraftClient mc = MinecraftClient.getInstance();
-        if (mc.player != null && mc.world != null) {
+    public static void onClientTick(Minecraft client) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null && mc.level != null) {
             if (!mc.isPaused()) {
-                ItemStack chest = mc.player.getEquippedStack(EquipmentSlot.CHEST);
+                ItemStack chest = mc.player.getItemBySlot(EquipmentSlot.CHEST);
                 Item item = chest.getItem();
                 if (!chest.isEmpty() && item instanceof JetpackItem && JetpackUtils.isFlying(mc.player)) {
-                    if (ModConfigs.getClient().general.enableJetpackParticles && (mc.options.particles != ParticlesOption.MINIMAL)) {
+                    if (ModConfigs.getClient().general.enableJetpackParticles && (mc.options.particles != ParticleStatus.MINIMAL)) {
                         Jetpack jetpack = ((JetpackItem) item).getJetpack();
-                        Vec3d playerPos = mc.player.getPos().add(0, 1.5, 0);
+                        Vec3 playerPos = mc.player.position().add(0, 1.5, 0);
                         
                         float random = (RANDOM.nextFloat() - 0.5F) * 0.1F;
-                        double[] sneakBonus = mc.player.isSneaking() ? new double[]{-0.30, -0.10} : new double[]{0, 0};
+                        double[] sneakBonus = mc.player.isShiftKeyDown() ? new double[]{-0.30, -0.10} : new double[]{0, 0};
                         
-                        Vec3d rotation = Vec3d.fromPolar(0, mc.player.bodyYaw);
-                        Vec3d vLeft = new Vec3d(-0.18, -0.90 + sneakBonus[1], -0.30 + sneakBonus[0]).rotateX(0).rotateY(mc.player.bodyYaw * -0.017453292F);
-                        Vec3d vRight = new Vec3d(0.18, -0.90 + sneakBonus[1], -0.30 + sneakBonus[0]).rotateX(0).rotateY(mc.player.bodyYaw * -0.017453292F);
+                        Vec3 rotation = Vec3.directionFromRotation(0, mc.player.yBodyRot);
+                        Vec3 vLeft = new Vec3(-0.18, -0.90 + sneakBonus[1], -0.30 + sneakBonus[0]).xRot(0).yRot(mc.player.yBodyRot * -0.017453292F);
+                        Vec3 vRight = new Vec3(0.18, -0.90 + sneakBonus[1], -0.30 + sneakBonus[0]).xRot(0).yRot(mc.player.yBodyRot * -0.017453292F);
                         
-                        Vec3d v = playerPos.add(vLeft).add(mc.player.getVelocity().multiply(jetpack.speedSide));
-                        mc.particleManager.addParticle(ParticleTypes.FLAME, v.x, v.y, v.z, random, -0.2D, random);
-                        mc.particleManager.addParticle(ParticleTypes.SMOKE, v.x, v.y, v.z, random, -0.2D, random);
+                        Vec3 v = playerPos.add(vLeft).add(mc.player.getDeltaMovement().scale(jetpack.speedSide));
+                        mc.particleEngine.createParticle(ParticleTypes.FLAME, v.x, v.y, v.z, random, -0.2D, random);
+                        mc.particleEngine.createParticle(ParticleTypes.SMOKE, v.x, v.y, v.z, random, -0.2D, random);
                         
-                        v = playerPos.add(vRight).add(mc.player.getVelocity().multiply(jetpack.speedSide));
-                        mc.particleManager.addParticle(ParticleTypes.FLAME, v.x, v.y, v.z, random, -0.2D, random);
-                        mc.particleManager.addParticle(ParticleTypes.SMOKE, v.x, v.y, v.z, random, -0.2D, random);
+                        v = playerPos.add(vRight).add(mc.player.getDeltaMovement().scale(jetpack.speedSide));
+                        mc.particleEngine.createParticle(ParticleTypes.FLAME, v.x, v.y, v.z, random, -0.2D, random);
+                        mc.particleEngine.createParticle(ParticleTypes.SMOKE, v.x, v.y, v.z, random, -0.2D, random);
                     }
                     
                     if (ModConfigs.getClient().general.enableJetpackSounds && !JetpackSound.playing(mc.player.getId())) {

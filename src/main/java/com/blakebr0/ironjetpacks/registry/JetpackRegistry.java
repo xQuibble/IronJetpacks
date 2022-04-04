@@ -2,10 +2,9 @@ package com.blakebr0.ironjetpacks.registry;
 
 import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.blakebr0.ironjetpacks.item.ModItems;
-import net.minecraft.item.Item;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.world.item.Item;
 
 public class JetpackRegistry {
     private static final JetpackRegistry INSTANCE = new JetpackRegistry();
@@ -54,7 +53,7 @@ public class JetpackRegistry {
     
     public JetpackItem getJetpackForName(String name) {
         Jetpack jetpack = this.jetpacks.stream().filter(j -> j.name.equals(name)).findFirst().orElse(null);
-        return jetpack == null ? null : jetpack.item;
+        return jetpack == null ? null : jetpack.item.get();
     }
     
     public Item getCoilForTier(int tier) {

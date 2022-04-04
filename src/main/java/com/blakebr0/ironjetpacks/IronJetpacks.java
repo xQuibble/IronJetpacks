@@ -15,15 +15,15 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
 import net.fabricmc.fabric.api.event.server.ServerStopCallback;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
 
 public class IronJetpacks implements ModInitializer {
     public static final String MOD_ID = "iron-jetpacks";
     public static final String NAME = "Iron Jetpacks";
     
-    public static final ItemGroup ITEM_GROUP = FabricItemGroupBuilder.create(new Identifier(MOD_ID, MOD_ID))
+    public static final CreativeModeTab ITEM_GROUP = FabricItemGroupBuilder.create(new ResourceLocation(MOD_ID, MOD_ID))
             .icon(() -> {
                 return new ItemStack(ModItems.STRAP.get());
             })

@@ -13,37 +13,36 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.item.TooltipContext;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.*;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.*;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
 import team.reborn.energy.api.EnergyStorage;
 
 import java.util.List;
 
-public class JetpackItem extends DyeableArmorItem implements Colored, DyeableItem, Enableable, ItemExtension {
+public class JetpackItem extends DyeableArmorItem implements Colored, DyeableLeatherItem, Enableable, ItemExtension {
     private final Jetpack jetpack;
     
-    public JetpackItem(Jetpack jetpack, Settings settings) {
-        super(JetpackUtils.makeArmorMaterial(jetpack), EquipmentSlot.CHEST, settings.maxDamage(0).rarity(jetpack.rarity));
+    public JetpackItem(Jetpack jetpack, Properties settings) {
+        super(JetpackUtils.makeArmorMaterial(jetpack), EquipmentSlot.CHEST, settings.durability(0).rarity(jetpack.rarity));
         this.jetpack = jetpack;
     }
     
     @Override
-    public Text getName(ItemStack stack) {
+    public Component getName(ItemStack stack) {
         String name = StringUtils.capitalize(this.jetpack.name.replace(" ", "_"));
-        return new TranslatableText("item.iron-jetpacks.jetpack", name);
+        return new TranslatableComponent("item.iron-jetpacks.jetpack", name);
     }
     
     /*
@@ -52,8 +51,8 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
      * https://github.com/Tomson124/SimplyJetpacks-2/blob/1.12/src/main/java/tonius/simplyjetpacks/item/rewrite/ItemJetpack.java
      */
     @Override
-    public void tickArmor(ItemStack stack, PlayerEntity player) {
-        ItemStack chest = player.getEquippedStack(EquipmentSlot.CHEST);
+    public void tickArmor(ItemStack stack, Player player) {
+        ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
         Item item = chest.getItem();
         if (!chest.isEmpty() && item instanceof JetpackItem) {
             JetpackItem jetpack = (JetpackItem) item;
@@ -63,8 +62,8 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
                     Jetpack info = jetpack.getJetpack();
                     
                     double hoverSpeed = InputHandler.isHoldingDown(player) ? info.speedHover : info.speedHoverSlow;
-                    double currentAccel = info.accelVert * (player.getVelocity().getY() < 0.3D ? 2.5D : 1.0D);
-                    double currentSpeedVertical = info.speedVert * (player.isSubmergedInWater() ? 0.4D : 1.0D);
+                    double currentAccel = info.accelVert * (player.getDeltaMovement().y() < 0.3D ? 2.5D : 1.0D);
+                    double currentSpeedVertical = info.speedVert * (player.isUnderWater() ? 0.4D : 1.0D);
                     
                     double usage = player.isSprinting() ? info.usage * info.sprintFuel : info.usage;
                     
@@ -82,7 +81,7 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
                                 stack.setCount(newStack.getCount());
                             }
     
-                            double motionY = player.getVelocity().getY();
+                            double motionY = player.getDeltaMovement().y();
                             if (InputHandler.isHoldingUp(player)) {
                                 if (!hover) {
                                     this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical));
@@ -97,30 +96,30 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
                                 this.fly(player, Math.min(motionY + currentAccel, -hoverSpeed));
                             }
     
-                            float speedSideways = (float) (player.isSneaking() ? info.speedSide * 0.5F : info.speedSide);
+                            float speedSideways = (float) (player.isShiftKeyDown() ? info.speedSide * 0.5F : info.speedSide);
                             float speedForward = (float) (player.isSprinting() ? speedSideways * info.sprintSpeed : speedSideways);
     
                             if (InputHandler.isHoldingForwards(player)) {
-                                player.updateVelocity(1, new Vec3d(0, 0, speedForward));
+                                player.moveRelative(1, new Vec3(0, 0, speedForward));
                             }
     
                             if (InputHandler.isHoldingBackwards(player)) {
-                                player.updateVelocity(1, new Vec3d(0, 0, -speedSideways * 0.8F));
+                                player.moveRelative(1, new Vec3(0, 0, -speedSideways * 0.8F));
                             }
     
                             if (InputHandler.isHoldingLeft(player)) {
-                                player.updateVelocity(1, new Vec3d(speedSideways, 0, 0));
+                                player.moveRelative(1, new Vec3(speedSideways, 0, 0));
                             }
     
                             if (InputHandler.isHoldingRight(player)) {
-                                player.updateVelocity(1, new Vec3d(-speedSideways, 0, 0));
+                                player.moveRelative(1, new Vec3(-speedSideways, 0, 0));
                             }
     
-                            if (!player.world.isClient()) {
+                            if (!player.level.isClientSide()) {
                                 player.fallDistance = 0.0F;
         
-                                if (player instanceof ServerPlayerEntity) {
-                                    ((ServerPlayNetworkHandlerAccessor) ((ServerPlayerEntity) player).networkHandler).setFloatingTicks(0);
+                                if (player instanceof ServerPlayer) {
+                                    ((ServerPlayNetworkHandlerAccessor) ((ServerPlayer) player).connection).setFloatingTicks(0);
                                 }
                             }
                         }
@@ -136,37 +135,37 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
     }
     
     @Override
-    public int getItemBarStep(ItemStack stack) {
+    public int getBarWidth(ItemStack stack) {
         EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withInitial(stack));
         double stored = energy.getCapacity() - energy.getAmount();
         return (int) Math.round(13.0F - (stored / energy.getCapacity()) * 13.0F);
     }
     
     @Override
-    public boolean isItemBarVisible(ItemStack stack) {
+    public boolean isBarVisible(ItemStack stack) {
         return !this.jetpack.creative;
     }
     
     @Environment(EnvType.CLIENT)
     @Override
-    public void appendTooltip(ItemStack stack, World world, List<Text> tooltip, TooltipContext advanced) {
+    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag advanced) {
         if (!this.jetpack.creative) {
             EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withInitial(stack));
-            tooltip.add(new LiteralText(UnitUtils.formatEnergy(energy.getAmount(), null)).formatted(Formatting.GRAY).append(" / ").append(new LiteralText(UnitUtils.formatEnergy(jetpack.capacity, null))));
+            tooltip.add(new TextComponent(UnitUtils.formatEnergy(energy.getAmount(), null)).withStyle(ChatFormatting.GRAY).append(" / ").append(new TextComponent(UnitUtils.formatEnergy(jetpack.capacity, null))));
         } else {
-            tooltip.add(new LiteralText("-1 E / ").formatted(Formatting.GRAY).append(ModTooltips.INFINITE.color(Formatting.GRAY)).append(" E"));
+            tooltip.add(new TextComponent("-1 E / ").withStyle(ChatFormatting.GRAY).append(ModTooltips.INFINITE.color(ChatFormatting.GRAY)).append(" E"));
         }
         
-        Text tier = ModTooltips.TIER.args(this.jetpack.creative ? "Creative" : this.jetpack.tier).formatted(this.jetpack.rarity.formatting);
-        Text engine = ModTooltips.ENGINE.color(isEngineOn(stack) ? Formatting.GREEN : Formatting.RED);
-        Text hover = ModTooltips.HOVER.color(isHovering(stack) ? Formatting.GREEN : Formatting.RED);
+        Component tier = ModTooltips.TIER.args(this.jetpack.creative ? "Creative" : this.jetpack.tier).withStyle(this.jetpack.rarity.color);
+        Component engine = ModTooltips.ENGINE.color(isEngineOn(stack) ? ChatFormatting.GREEN : ChatFormatting.RED);
+        Component hover = ModTooltips.HOVER.color(isHovering(stack) ? ChatFormatting.GREEN : ChatFormatting.RED);
         
         tooltip.add(ModTooltips.STATE_TOOLTIP_LAYOUT.args(tier, engine, hover));
         
         if (ModConfigs.getClient().general.enableAdvancedInfoTooltips) {
-            tooltip.add(new LiteralText(""));
+            tooltip.add(new TextComponent(""));
             if (!Screen.hasShiftDown()) {
-                tooltip.add(new TranslatableText("tooltip.iron-jetpacks.hold_shift_for_info"));
+                tooltip.add(new TranslatableComponent("tooltip.iron-jetpacks.hold_shift_for_info"));
             } else {
                 tooltip.add(ModTooltips.FUEL_USAGE.args(this.jetpack.usage + " E/t"));
                 tooltip.add(ModTooltips.VERTICAL_SPEED.args(this.jetpack.speedVert));
@@ -181,8 +180,8 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
     }
     
     @Override
-    public void appendStacks(ItemGroup group, DefaultedList<ItemStack> stacks) {
-        if (this.isIn(group)) {
+    public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> stacks) {
+        if (this.allowdedIn(group)) {
             stacks.add(new ItemStack(this));
             
             if (!jetpack.creative) {
@@ -200,7 +199,7 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
     }
     
     @Override
-    public boolean hasColor(ItemStack stack) {
+    public boolean hasCustomColor(ItemStack stack) {
         return true;
     }
     
@@ -210,7 +209,7 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
     }
     
     @Override
-    public void removeColor(ItemStack stack) {
+    public void clearColor(ItemStack stack) {
         
     }
     
@@ -261,8 +260,8 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableIte
         return !current;
     }
     
-    private void fly(PlayerEntity player, double y) {
-        Vec3d motion = player.getVelocity();
-        player.setVelocity(motion.getX(), y, motion.getZ());
+    private void fly(Player player, double y) {
+        Vec3 motion = player.getDeltaMovement();
+        player.setDeltaMovement(motion.x(), y, motion.z());
     }
 }

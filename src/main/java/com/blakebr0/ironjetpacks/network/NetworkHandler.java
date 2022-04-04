@@ -9,11 +9,11 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 
 public class NetworkHandler {
-    public static final Identifier PACKET_ID = new Identifier(IronJetpacks.MOD_ID, IronJetpacks.MOD_ID);
+    public static final ResourceLocation PACKET_ID = new ResourceLocation(IronJetpacks.MOD_ID, IronJetpacks.MOD_ID);
     private static int id = 0;
     
     public static void onCommonSetup() {
@@ -29,7 +29,7 @@ public class NetworkHandler {
     
     @Environment(EnvType.CLIENT)
     public static void sendToServer(ToggleHoverMessage message) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeInt(0);
         ToggleHoverMessage.write(message, buf);
         ClientPlayNetworking.send(PACKET_ID, buf);
@@ -37,7 +37,7 @@ public class NetworkHandler {
     
     @Environment(EnvType.CLIENT)
     public static void sendToServer(UpdateInputMessage message) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeInt(1);
         UpdateInputMessage.write(message, buf);
         ClientPlayNetworking.send(PACKET_ID, buf);
@@ -45,7 +45,7 @@ public class NetworkHandler {
     
     @Environment(EnvType.CLIENT)
     public static void sendToServer(ToggleEngineMessage message) {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeInt(2);
         ToggleEngineMessage.write(message, buf);
         ClientPlayNetworking.send(PACKET_ID, buf);

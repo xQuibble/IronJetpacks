@@ -1,9 +1,9 @@
 package com.blakebr0.ironjetpacks.network.message;
 
 import com.blakebr0.ironjetpacks.handler.InputHandler;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 
 public class UpdateInputMessage {
     private final boolean up;
@@ -22,11 +22,11 @@ public class UpdateInputMessage {
         this.right = right;
     }
     
-    public static UpdateInputMessage read(PacketByteBuf buffer) {
+    public static UpdateInputMessage read(FriendlyByteBuf buffer) {
         return new UpdateInputMessage(buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean());
     }
     
-    public static void write(UpdateInputMessage message, PacketByteBuf buffer) {
+    public static void write(UpdateInputMessage message, FriendlyByteBuf buffer) {
         buffer.writeBoolean(message.up);
         buffer.writeBoolean(message.down);
         buffer.writeBoolean(message.forwards);
@@ -35,7 +35,7 @@ public class UpdateInputMessage {
         buffer.writeBoolean(message.right);
     }
     
-    public static void onMessage(UpdateInputMessage message, MinecraftServer server, ServerPlayerEntity player) {
+    public static void onMessage(UpdateInputMessage message, MinecraftServer server, ServerPlayer player) {
         server.execute(() -> {
             if (player != null) {
                 InputHandler.update(player, message.up, message.down, message.forwards, message.backwards, message.left, message.right);

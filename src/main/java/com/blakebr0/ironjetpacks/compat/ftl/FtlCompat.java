@@ -8,10 +8,10 @@ import team.reborn.energy.api.base.SimpleBatteryItem;
 public class FtlCompat {
     public static void init() {
         for (Jetpack jetpack : JetpackRegistry.getInstance().getAllJetpacks()) {
-            double maxInput = jetpack.item.getMaxInput();
+            double maxInput = jetpack.item.get().getMaxInput();
             EnergyStorage.ITEM.registerForItems((itemStack, context) -> {
                 return SimpleBatteryItem.createStorage(context, (long) jetpack.capacity, (long) maxInput, (long) Math.max(maxInput, jetpack.usage * jetpack.sprintFuel));
-            }, jetpack.item);
+            }, jetpack.item.get());
         }
     }
 }

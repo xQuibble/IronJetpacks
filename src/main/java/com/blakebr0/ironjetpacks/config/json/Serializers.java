@@ -3,9 +3,8 @@ package com.blakebr0.ironjetpacks.config.json;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.registry.JetpackRegistry;
 import com.google.gson.*;
-import net.minecraft.util.Rarity;
-
 import java.lang.reflect.Type;
+import net.minecraft.world.item.Rarity;
 
 public class Serializers {
     public static Gson initGson() {

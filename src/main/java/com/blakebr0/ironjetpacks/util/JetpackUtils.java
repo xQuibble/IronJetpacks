@@ -7,19 +7,19 @@ import com.blakebr0.ironjetpacks.registry.Jetpack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ArmorMaterial;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import team.reborn.energy.api.EnergyStorage;
 
 public class JetpackUtils {
-    public static boolean isFlying(PlayerEntity player) {
-        ItemStack stack = player.getEquippedStack(EquipmentSlot.CHEST);
+    public static boolean isFlying(Player player) {
+        ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
         if (!stack.isEmpty()) {
             Item item = stack.getItem();
             if (item instanceof JetpackItem jetpack) {
@@ -40,23 +40,23 @@ public class JetpackUtils {
     public static ArmorMaterial makeArmorMaterial(Jetpack jetpack) {
         return new ArmorMaterial() {
             @Override
-            public int getDurability(EquipmentSlot slot) {
+            public int getDurabilityForSlot(EquipmentSlot slot) {
                 return 0;
             }
             
             @Override
-            public int getProtectionAmount(EquipmentSlot slot) {
+            public int getDefenseForSlot(EquipmentSlot slot) {
                 return jetpack.armorPoints;
             }
             
             @Override
-            public int getEnchantability() {
+            public int getEnchantmentValue() {
                 return jetpack.enchantablilty;
             }
             
             @Override
             public SoundEvent getEquipSound() {
-                return SoundEvents.ITEM_ARMOR_EQUIP_GENERIC;
+                return SoundEvents.ARMOR_EQUIP_GENERIC;
             }
             
             @Override
