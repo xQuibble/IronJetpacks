@@ -33,6 +33,7 @@ dependencies {
         exclude(group: "net.fabricmc.fabric-api")
         exclude(group: "io.github.prospector")
     }
+    modImplementation "dev.architectury:architectury-fabric:6.3.49"
     modImplementation(include("teamreborn:energy:${project.tr_energy_version}"))
 }
 
