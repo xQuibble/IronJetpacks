@@ -10,15 +10,18 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 
 public class JetpackUpgradeRecipe extends ShapedRecipe {
-    public JetpackUpgradeRecipe(ResourceLocation id, String group, int recipeWidth, int recipeHeight, NonNullList<Ingredient> inputs, ItemStack output) {
-        super(id, group, recipeWidth, recipeHeight, inputs, output);
+
+
+    public JetpackUpgradeRecipe(ResourceLocation resourceLocation, String string, CraftingBookCategory craftingBookCategory, int i, int j, NonNullList<Ingredient> nonNullList, ItemStack itemStack) {
+        super(resourceLocation, string, craftingBookCategory, i, j, nonNullList, itemStack);
     }
-    
+
     @Override
     public ItemStack assemble(CraftingContainer inv) {
         ItemStack jetpack = inv.getItem(4);
@@ -44,35 +47,39 @@ public class JetpackUpgradeRecipe extends ShapedRecipe {
         @Override
         public JetpackUpgradeRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
             ShapedRecipe recipe = RecipeSerializer.SHAPED_RECIPE.fromJson(recipeId, json);
-            return new JetpackUpgradeRecipe(recipeId, ((ShapedRecipeAccessor) recipe).getGroup(), recipe.getWidth(), recipe.getHeight(), recipe.getIngredients(), recipe.getResultItem());
+            return new JetpackUpgradeRecipe(recipeId, ((ShapedRecipeAccessor) recipe).getGroup(), CraftingBookCategory.EQUIPMENT, recipe.getWidth(), recipe.getHeight(), recipe.getIngredients(), recipe.getResultItem());
         }
         
         @Override
-        public JetpackUpgradeRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-            int i = buffer.readVarInt();
-            int j = buffer.readVarInt();
-            String s = buffer.readUtf(32767);
-            NonNullList<Ingredient> inputs = NonNullList.withSize(i * j, Ingredient.EMPTY);
-            
-            for (int k = 0; k < inputs.size(); k++) {
-                inputs.set(k, Ingredient.fromNetwork(buffer));
+        public JetpackUpgradeRecipe fromNetwork(ResourceLocation resourceLocation, FriendlyByteBuf friendlyByteBuf) {
+            int i = friendlyByteBuf.readVarInt();
+            int j = friendlyByteBuf.readVarInt();
+            String string = friendlyByteBuf.readUtf();
+            CraftingBookCategory craftingBookCategory = (CraftingBookCategory)friendlyByteBuf.readEnum(CraftingBookCategory.class);
+            NonNullList<Ingredient> nonNullList = NonNullList.withSize(i * j, Ingredient.EMPTY);
+
+            for(int k = 0; k < nonNullList.size(); ++k) {
+                nonNullList.set(k, Ingredient.fromNetwork(friendlyByteBuf));
             }
-            
-            ItemStack output = buffer.readItem();
-            return new JetpackUpgradeRecipe(recipeId, s, i, j, inputs, output);
+
+            ItemStack itemStack = friendlyByteBuf.readItem();
+            return new JetpackUpgradeRecipe(resourceLocation, string, craftingBookCategory, i, j, nonNullList, itemStack);
         }
         
         @Override
-        public void toNetwork(FriendlyByteBuf buffer, JetpackUpgradeRecipe recipe) {
-            buffer.writeVarInt(recipe.getWidth());
-            buffer.writeVarInt(recipe.getHeight());
-            buffer.writeUtf(((ShapedRecipeAccessor) recipe).getGroup());
-            
-            for (Ingredient ingredient : recipe.getIngredients()) {
-                ingredient.toNetwork(buffer);
+        public void toNetwork(FriendlyByteBuf friendlyByteBuf, JetpackUpgradeRecipe shapedRecipe) {
+            friendlyByteBuf.writeVarInt(shapedRecipe.getWidth());
+            friendlyByteBuf.writeVarInt(shapedRecipe.getHeight());
+            friendlyByteBuf.writeUtf(shapedRecipe.getGroup());
+            friendlyByteBuf.writeEnum(CraftingBookCategory.EQUIPMENT);
+            var var3 = shapedRecipe.getIngredients().iterator();
+
+            while(var3.hasNext()) {
+                Ingredient ingredient = (Ingredient)var3.next();
+                ingredient.toNetwork(friendlyByteBuf);
             }
-            
-            buffer.writeItem(recipe.getResultItem());
+
+            friendlyByteBuf.writeItem(shapedRecipe.getResultItem());
         }
     }
 }

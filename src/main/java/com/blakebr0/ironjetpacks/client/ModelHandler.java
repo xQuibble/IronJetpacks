@@ -8,16 +8,15 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.Material;
-import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.client.resources.model.ModelState;
-import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.client.resources.model.*;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -42,25 +41,25 @@ public class ModelHandler {
         ResourceLocation jetpack = new ResourceLocation(IronJetpacks.MOD_ID, "item/jetpack");
         Map<ModelResourceLocation, UnbakedModel> modelMap = Maps.newHashMap();
         JetpackRegistry.getInstance().getAllJetpacks().forEach(pack -> {
-            ResourceLocation cellLocation = Registry.ITEM.getKey(pack.cell);
+            ResourceLocation cellLocation = BuiltInRegistries.ITEM.getKey(pack.cell);
             if (cellLocation != null) {
                 ModelResourceLocation location = new ModelResourceLocation(cellLocation, "inventory");
                 provideModel(modelMap, location, cell);
             }
             
-            ResourceLocation capacitorLocation = Registry.ITEM.getKey(pack.capacitor);
+            ResourceLocation capacitorLocation = (BuiltInRegistries.ITEM).getKey(pack.capacitor);
             if (capacitorLocation != null) {
                 ModelResourceLocation location = new ModelResourceLocation(capacitorLocation, "inventory");
                 provideModel(modelMap, location, capacitor);
             }
             
-            ResourceLocation thrusterLocation = Registry.ITEM.getKey(pack.thruster);
+            ResourceLocation thrusterLocation = (BuiltInRegistries.ITEM).getKey(pack.thruster);
             if (thrusterLocation != null) {
                 ModelResourceLocation location = new ModelResourceLocation(thrusterLocation, "inventory");
                 provideModel(modelMap, location, thruster);
             }
             
-            ResourceLocation jetpackLocation = Registry.ITEM.getKey(pack.item.get());
+            ResourceLocation jetpackLocation = (BuiltInRegistries.ITEM).getKey(pack.item.get());
             if (jetpackLocation != null) {
                 ModelResourceLocation location = new ModelResourceLocation(jetpackLocation, "inventory");
                 provideModel(modelMap, location, jetpack);
@@ -77,16 +76,19 @@ public class ModelHandler {
             public Collection<ResourceLocation> getDependencies() {
                 return Collections.emptyList();
             }
-            
+
             @Override
-            public Collection<Material> getMaterials(Function<ResourceLocation, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
-                return Collections.emptyList();
+            public void resolveParents(Function<ResourceLocation, UnbakedModel> function) {
+
             }
-            
+
+            @Nullable
             @Override
-            public BakedModel bake(ModelBakery loader, Function<Material, TextureAtlasSprite> textureGetter, ModelState rotationContainer, ResourceLocation modelId) {
-                return loader.bake(redirectedId, rotationContainer);
+            public BakedModel bake(ModelBaker modelBaker, Function<Material, TextureAtlasSprite> function, ModelState modelState, ResourceLocation resourceLocation) {
+                return modelBaker.bake(redirectedId, modelState);
             }
+
+
         });
     }
 }

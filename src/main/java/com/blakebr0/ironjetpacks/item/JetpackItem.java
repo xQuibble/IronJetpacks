@@ -177,18 +177,7 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableLea
         }
     }
     
-    @Override
-    public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> stacks) {
-        if (this.allowedIn(group)) {
-            stacks.add(new ItemStack(this));
-            
-            if (!jetpack.creative) {
-                ItemStack stack = new ItemStack(this);
-                stack.getOrCreateTag().putDouble("energy", jetpack.capacity);
-                stacks.add(stack);
-            }
-        }
-    }
+    
     
     @Environment(EnvType.CLIENT)
     @Override
