@@ -122,7 +122,7 @@ public class Jetpack {
                         if (tag != null)
                             this.craftingMaterial = Ingredient.of(tag);
                     } else if (parts.length >= 2) {
-                        Item item = (BuiltInRegistries.ITEM).get(new ResourceLocation(parts[0], parts[1]));
+                        Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(parts[0], parts[1]));
                         if (item != null)
                             this.craftingMaterial = Ingredient.of(item);
                     }

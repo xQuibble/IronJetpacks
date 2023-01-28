@@ -47,19 +47,19 @@ public class ModelHandler {
                 provideModel(modelMap, location, cell);
             }
             
-            ResourceLocation capacitorLocation = (BuiltInRegistries.ITEM).getKey(pack.capacitor);
+            ResourceLocation capacitorLocation = BuiltInRegistries.ITEM.getKey(pack.capacitor);
             if (capacitorLocation != null) {
                 ModelResourceLocation location = new ModelResourceLocation(capacitorLocation, "inventory");
                 provideModel(modelMap, location, capacitor);
             }
             
-            ResourceLocation thrusterLocation = (BuiltInRegistries.ITEM).getKey(pack.thruster);
+            ResourceLocation thrusterLocation = BuiltInRegistries.ITEM.getKey(pack.thruster);
             if (thrusterLocation != null) {
                 ModelResourceLocation location = new ModelResourceLocation(thrusterLocation, "inventory");
                 provideModel(modelMap, location, thruster);
             }
             
-            ResourceLocation jetpackLocation = (BuiltInRegistries.ITEM).getKey(pack.item.get());
+            ResourceLocation jetpackLocation = BuiltInRegistries.ITEM.getKey(pack.item.get());
             if (jetpackLocation != null) {
                 ModelResourceLocation location = new ModelResourceLocation(jetpackLocation, "inventory");
                 provideModel(modelMap, location, jetpack);
