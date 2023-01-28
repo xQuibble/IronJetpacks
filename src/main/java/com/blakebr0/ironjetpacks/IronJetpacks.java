@@ -13,6 +13,8 @@ import me.sargunvohra.mcmods.autoconfig1u.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -21,7 +23,9 @@ import net.minecraft.world.item.ItemStack;
 public class IronJetpacks implements ModInitializer {
     public static final String MOD_ID = "iron-jetpacks";
     public static final String NAME = "Iron Jetpacks";
-    
+
+    public static final CreativeModeTab ITEM_GROUP = FabricItemGroup.builder(new ResourceLocation(MOD_ID, MOD_ID)).icon(() -> new ItemStack(ModItems.STRAP.get())).build();
+
     @Override
     public void onInitialize() {
         ModItems.register();
